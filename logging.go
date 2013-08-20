@@ -126,3 +126,19 @@ func Warning(format string, v ...interface{}) {
 func Error(format string, v ...interface{}) {
 	std.Error(format, v...)
 }
+
+func SetPrefix(prefix string) {
+	std.SetPrefix(prefix)
+}
+
+func SetLevel(level int) {
+	std.SetLevel(level)
+}
+
+func SetLayout(layout string) {
+	std.SetLayout(layout)
+}
+
+func SetWriter(out io.Writer) {
+	std.SetWriter(out)
+}
