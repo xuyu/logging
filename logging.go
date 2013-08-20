@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -19,11 +20,13 @@ const (
 )
 
 type Logger struct {
-	mutex  sync.Mutex
-	prefix string
-	out    io.Writer
-	level  int
-	layout string
+	mutex   sync.Mutex
+	prefix  string
+	out     io.Writer
+	level   int
+	layout  string
+	handler func(log string)
+	data    map[string]string
 }
 
 func New(out io.Writer, prefix string, level int, layout string) *Logger {
@@ -80,11 +83,13 @@ func (l *Logger) head(level string) string {
 }
 
 func (l *Logger) log(level string, format string, v ...interface{}) {
-	head := l.head(level)
+	log := l.head(level) + fmt.Sprintf(strings.TrimRight(format, "\n")+"\n", v...)
+	if l.handler != nil {
+		l.handler(log)
+	}
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
-	fmt.Fprint(l.out, head)
-	fmt.Fprintf(l.out, strings.TrimRight(format, "\n")+"\n", v...)
+	fmt.Fprint(l.out, log)
 }
 
 func (l *Logger) Debug(format string, v ...interface{}) {
@@ -141,4 +146,62 @@ func SetLayout(layout string) {
 
 func SetWriter(out io.Writer) {
 	std.SetWriter(out)
+}
+
+func SetDefaultLogger(l *Logger) {
+	std = l
+}
+
+func mklogfile(filepath, linkpath string) (*os.File, error) {
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			if _, err := os.Create(filepath); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	os.Remove(linkpath)
+	if err := os.Symlink(filepath, linkpath); err != nil {
+		return nil, err
+	}
+	file, err := os.OpenFile(linkpath, os.O_APPEND|os.O_WRONLY, 0640)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func (l *Logger) rotation(log string) {
+	oldfilepath := l.data["oldfilepath"]
+	linkpath := l.data["linkpath"]
+	suffix := l.data["suffix"]
+	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
+	if filepath != oldfilepath {
+		file, err := mklogfile(filepath, linkpath)
+		if err != nil {
+			return
+		}
+		l.mutex.Lock()
+		l.out = file
+		l.data["oldfilepath"] = filepath
+		l.mutex.Unlock()
+	}
+}
+
+func NewHourRotationLogger(filename string, dir string, suffix string) (*Logger, error) {
+	linkpath := path.Join(dir, filename)
+	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
+	file, err := mklogfile(filepath, linkpath)
+	if err != nil {
+		return nil, err
+	}
+	l := New(file, "", DEBUG, LAYOUT)
+	l.data = make(map[string]string)
+	l.data["oldfilepath"] = filepath
+	l.data["linkpath"] = linkpath
+	l.data["suffix"] = suffix
+	l.handler = l.rotation
+	return l, nil
 }
