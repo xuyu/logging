@@ -22,14 +22,14 @@ const (
 type Logger struct {
 	mutex   sync.Mutex
 	prefix  string
-	out     io.Writer
+	out     io.WriteCloser
 	level   int
 	layout  string
 	handler func(log string)
 	data    map[string]string
 }
 
-func New(out io.Writer, prefix string, level int, layout string) *Logger {
+func New(out io.WriteCloser, prefix string, level int, layout string) *Logger {
 	return &Logger{out: out, prefix: prefix, level: level, layout: layout}
 }
 
@@ -47,7 +47,7 @@ func (l *Logger) SetLevel(level int) {
 	l.level = level
 }
 
-func (l *Logger) SetWriter(out io.Writer) {
+func (l *Logger) SetWriter(out io.WriteCloser) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.out = out
@@ -184,6 +184,7 @@ func (l *Logger) rotation(log string) {
 			return
 		}
 		l.mutex.Lock()
+		l.out.Close()
 		l.out = file
 		l.data["oldfilepath"] = filepath
 		l.mutex.Unlock()
