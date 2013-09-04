@@ -144,7 +144,7 @@ func SetLayout(layout string) {
 	std.SetLayout(layout)
 }
 
-func SetWriter(out io.Writer) {
+func SetWriter(out io.WriteCloser) {
 	std.SetWriter(out)
 }
 
