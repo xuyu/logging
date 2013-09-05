@@ -66,24 +66,25 @@ func (l *Logger) Level() int {
 }
 
 func (l *Logger) Prefix() string {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
 	return l.prefix
 }
 
 func (l *Logger) timestamp() string {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
 	return time.Now().Format(l.layout)
 }
 
 func (l *Logger) head(level string) string {
-	a := []string{"[", l.timestamp(), "] ", level, " ", l.Prefix(), " "}
+	a := []string{"[", l.timestamp(), "]"}
+	p := l.Prefix()
+	if p != "" {
+		a = append(a, " ", p)
+	}
+	a = append(a, " ", level)
 	return strings.Join(a, "")
 }
 
 func (l *Logger) log(level string, format string, v ...interface{}) {
-	log := l.head(level) + fmt.Sprintf(strings.TrimRight(format, "\n")+"\n", v...)
+	log := l.head(level) + " " + fmt.Sprintf(strings.TrimRight(format, "\n")+"\n", v...)
 	if l.handler != nil {
 		l.handler(log)
 	}
