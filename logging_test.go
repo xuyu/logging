@@ -16,7 +16,7 @@ func TestLogging(t *testing.T) {
 }
 
 func TestRotationLogger(t *testing.T) {
-	l, err := NewHourRotationLogger("test.log", "/tmp", "060102-15")
+	l, err := NewRotationLogger("test.log", "/tmp", "060102-15")
 	if err != nil {
 		t.Fatal(err.Error())
 	}

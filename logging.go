@@ -192,7 +192,7 @@ func (l *Logger) rotation(log string) {
 	}
 }
 
-func NewHourRotationLogger(filename string, dir string, suffix string) (*Logger, error) {
+func NewRotationLogger(filename string, dir string, suffix string) (*Logger, error) {
 	linkpath := path.Join(dir, filename)
 	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
 	file, err := mklogfile(filepath, linkpath)
