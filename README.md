@@ -7,9 +7,11 @@ logging library in golang base on log pkg
 features
 --------
 
-*support logging level
-*support file logger
-*support rotation logger(by filename)
+-support logging level
+
+-support file logger
+
+-support rotation logger(by filename)
 
 
 example
@@ -24,8 +26,8 @@ simple usage:
 ```go
 logging.SetLevel(INFO)
 logging.SetPrefix("Prefix")
-Debug("%d, %s", 1, "OK")
-Error("%d, %s", 4, "OK")
+logging.Debug("%d, %s", 1, "OK")
+logging.Error("%d, %s", 4, "OK")
 ```
 
 simple file logger:
@@ -49,3 +51,5 @@ if err != nil {
 logging.SetDefaultLogger(l)
 ...
 ```
+
+default logging write to os.Stdout
