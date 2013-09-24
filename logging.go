@@ -163,11 +163,13 @@ func mklogfile(filepath, linkpath string) (*os.File, error) {
 			return nil, err
 		}
 	}
-	os.Remove(linkpath)
+	var fn string
 	if err := os.Symlink(filepath, linkpath); err != nil {
-		return nil, err
+		fn = filepath
+	} else {
+		fn = linkpath
 	}
-	file, err := os.OpenFile(linkpath, os.O_APPEND|os.O_WRONLY, 0640)
+	file, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY, 0640)
 	if err != nil {
 		return nil, err
 	}
@@ -180,15 +182,15 @@ func (l *Logger) rotation(log string) {
 	suffix := l.data["suffix"]
 	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
 	if filepath != oldfilepath {
+		l.mutex.Lock()
+		defer l.mutex.Unlock()
+		l.out.Close()
 		file, err := mklogfile(filepath, linkpath)
 		if err != nil {
 			return
 		}
-		l.mutex.Lock()
-		l.out.Close()
 		l.out = file
 		l.data["oldfilepath"] = filepath
-		l.mutex.Unlock()
 	}
 }
 
