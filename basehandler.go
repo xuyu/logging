@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"sync"
@@ -21,7 +22,9 @@ type BaseHandler struct {
 	TimeLayout string
 	Tmpl       *template.Template
 	RecordChan chan *Record
-	PredoFunc  func()
+	PredoFunc  func(io.ReadWriter)
+	WriteN     func(int64)
+	GotError   func(error)
 }
 
 func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) *BaseHandler {
@@ -32,6 +35,7 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) *
 	}
 	b.SetFormat(format)
 	b.RecordChan = make(chan *Record, DefaultBufSize)
+	b.GotError = b.CloseWhenError
 	go b.BackendWriteRecord()
 	return b
 }
@@ -83,13 +87,42 @@ func (b *BaseHandler) Emit(level LogLevel, f string, values ...interface{}) {
 	b.RecordChan <- rd
 }
 
+func (b *BaseHandler) PanicError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (b *BaseHandler) IgnoreError(error) {
+}
+
+func (b *BaseHandler) CloseWhenError(err error) {
+	if err != nil {
+		b.Writer = nil
+	}
+}
+
 func (b *BaseHandler) BackendWriteRecord() {
 	var rd *Record
+	buf := bytes.NewBuffer(nil)
 	for {
 		rd = <-b.RecordChan
-		if b.PredoFunc != nil {
-			b.PredoFunc()
+		if b.Writer != nil {
+			buf.Reset()
+			if err := b.Tmpl.Execute(buf, rd); err != nil {
+				b.GotError(err)
+				continue
+			}
+			if b.PredoFunc != nil {
+				b.PredoFunc(buf)
+			}
+			n, err := io.Copy(b.Writer, buf)
+			if err != nil {
+				b.GotError(err)
+			}
+			if b.WriteN != nil {
+				b.WriteN(int64(n))
+			}
 		}
-		b.Tmpl.Execute(b.Writer, rd)
 	}
 }

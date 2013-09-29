@@ -13,6 +13,8 @@ features
 
 * support time rotation handler
 
+* support size rotation handler
+
 * support multi handlers
 
 
@@ -42,7 +44,7 @@ logging.AddHandler("file", l1)
 ...
 ```
 
-rotation handler:
+time rotation handler:
 
 ```go
 l, err := logging.NewRotationHandler("/tmp/tr.log", "060102-15")
@@ -60,5 +62,17 @@ multi handler:
 logging.EnableDefaultStdout().SetLevel(INFO)
 logging.AddHandler("file", l1)
 logging.AddHandler("rotation", l2)
+...
+```
+
+size rotation handler
+
+```go
+h, err := logging.NewSizeRotationHandler("/tmp/sr.log", 1024, 5)
+if err != nil {
+	panic(err)
+}
+h.SetLevel(INFO)
+logging.AddHandler(h)
 ...
 ```

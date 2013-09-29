@@ -1,13 +1,14 @@
 package logging
 
 import (
+	"io"
 	"os"
 	"strings"
 	"time"
 )
 
 type TimeRotationHandler struct {
-	BaseHandler
+	*BaseHandler
 	LocalData map[string]string
 }
 
@@ -18,12 +19,12 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 	if err != nil {
 		return nil, err
 	}
-	r.BaseHandler = *NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	r.BaseHandler = NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	r.BaseHandler.PredoFunc = r.Rotate
 	r.LocalData = make(map[string]string)
 	r.LocalData["oldfilepath"] = fullfile
 	r.LocalData["linkpath"] = shortfile
 	r.LocalData["suffix"] = suffix
-	r.PredoFunc = r.Rotate
 	return r, nil
 }
 
@@ -50,18 +51,19 @@ func (r *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 	return file, nil
 }
 
-func (r *TimeRotationHandler) Rotate() {
+func (r *TimeRotationHandler) Rotate(io.ReadWriter) {
 	oldfilepath := r.LocalData["oldfilepath"]
 	linkpath := r.LocalData["linkpath"]
 	suffix := r.LocalData["suffix"]
 	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
 	if filepath != oldfilepath {
-		r.Writer.Close()
+		r.BaseHandler.Writer.Close()
 		file, err := r.OpenFile(filepath, linkpath)
 		if err != nil {
+			r.BaseHandler.GotError(err)
 			return
 		}
-		r.Writer = file
+		r.BaseHandler.Writer = file
 		r.LocalData["oldfilepath"] = filepath
 	}
 }
