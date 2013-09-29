@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestRotationHandler(t *testing.T) {
-	r, err := NewRotationHandler("/tmp/rotation.log", "060102-15")
+func TestTimeRotationHandler(t *testing.T) {
+	r, err := NewTimeRotationHandler("/tmp/tr.log", "060102-15")
 	if err != nil {
 		t.Fatal(err)
 	}

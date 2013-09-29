@@ -4,16 +4,16 @@ import (
 	"os"
 )
 
-type FileHandler struct {
+type SingleFileHandler struct {
 	BaseHandler
 }
 
-func NewFileHandler(file string) (*FileHandler, error) {
+func NewSingleFileHandler(file string) (*SingleFileHandler, error) {
 	fp, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)
 	if err != nil {
 		return nil, err
 	}
-	f := &FileHandler{}
+	f := &SingleFileHandler{}
 	f.BaseHandler = *NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
 	return f, nil
 }

@@ -24,12 +24,12 @@ func (l *Logger) GetHandler(name string) Handler {
 	return l.handlers[name]
 }
 
-func (l *Logger) log(lv level, format string, values ...interface{}) {
+func (l *Logger) log(level LogLevel, format string, values ...interface{}) {
 	for _, h := range l.handlers {
-		if h.GetLevel() > lv {
-			return
+		if h.GetLevel() > level {
+			continue
 		}
-		h.Emit(lv, format, values...)
+		h.Emit(level, format, values...)
 	}
 }
 
@@ -61,32 +61,17 @@ func Error(format string, values ...interface{}) {
 	DefaultLogger.log(ERROR, format, values...)
 }
 
-type Handler interface {
-	SetLevel(level)
-	GetLevel() level
-	SetTimeLayout(string)
-	GetTimeLayout() string
-	SetFormat(string)
-	Emit(level, string, ...interface{})
-}
-
-type Formatter struct {
-	TimeString string
-	Level      level
-	Message    string
-}
-
-type level int
+type LogLevel uint8
 
 const (
-	DEBUG   level = 1
-	INFO    level = 2
-	WARNING level = 3
-	ERROR   level = 4
-	DISABLE level = 5
+	DEBUG   LogLevel = 1
+	INFO    LogLevel = 2
+	WARNING LogLevel = 3
+	ERROR   LogLevel = 4
+	DISABLE LogLevel = 255
 )
 
-func (l *level) String() string {
+func (l *LogLevel) String() string {
 	switch *l {
 	case DEBUG:
 		return "DEBUG"

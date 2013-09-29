@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestFileHandler(t *testing.T) {
-	f, err := NewFileHandler("/tmp/file.log")
+func TestSingleFileHandler(t *testing.T) {
+	f, err := NewSingleFileHandler("/tmp/sf.log")
 	if err != nil {
 		t.Fatal(err)
 	}

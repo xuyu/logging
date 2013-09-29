@@ -11,7 +11,7 @@ features
 
 * support file handler
 
-* support rotation handler(by filename)
+* support time rotation handler
 
 * support multi handlers
 
@@ -34,22 +34,22 @@ logging.Error("%d, %s", 4, "OK")
 simple file handler:
 
 ```go
-l, err := logging.NewFileHandler("/tmp/file.log")
+l, err := logging.NewSingleFileHandler("/tmp/sf.log")
 if err != nil {
 	panic(err)
 }
-logging.AddHandler("file", l)
+logging.AddHandler("file", l1)
 ...
 ```
 
 rotation handler:
 
 ```go
-l, err := logging.NewRotationHandler("/tmp/rotation.log", "060102-15")
+l, err := logging.NewRotationHandler("/tmp/tr.log", "060102-15")
 if err != nil {
 	panic(err)
 }
-logging.AddHandler("rotation", l)
+logging.AddHandler("rotation", l2)
 ...
 ```
 
