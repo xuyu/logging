@@ -25,7 +25,6 @@ simple usage:
 
 ```go
 logging.SetLevel(INFO)
-logging.SetPrefix("Prefix")
 logging.Debug("%d, %s", 1, "OK")
 logging.Error("%d, %s", 4, "OK")
 ```
