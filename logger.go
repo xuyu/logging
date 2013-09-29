@@ -33,6 +33,18 @@ func (l *Logger) log(lv level, format string, values ...interface{}) {
 	}
 }
 
+func AddHandler(name string, h Handler) {
+	DefaultLogger.AddHandler(name, h)
+}
+
+func DelHandler(name string) {
+	DefaultLogger.DelHandler(name)
+}
+
+func GetHandler(name string) Handler {
+	return DefaultLogger.GetHandler(name)
+}
+
 func Debug(format string, values ...interface{}) {
 	DefaultLogger.log(DEBUG, format, values...)
 }

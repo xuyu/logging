@@ -10,7 +10,7 @@ func TestRotationHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.SetLevel(INFO)
-	DefaultLogger.AddHandler("rotation", r)
+	AddHandler("rotation", r)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 2, "OK")
 	Warning("%d, %s", 3, "OK")

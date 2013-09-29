@@ -10,7 +10,7 @@ func TestFileHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.SetLevel(INFO)
-	DefaultLogger.AddHandler("file", f)
+	AddHandler("file", f)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 2, "OK")
 	Warning("%d, %s", 3, "OK")

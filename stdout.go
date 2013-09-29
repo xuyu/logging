@@ -8,15 +8,15 @@ const (
 	DefaultStdoutHandlerName = "stdout"
 )
 
-func (l *Logger) DisableDefaultStdout() {
-	l.DelHandler(DefaultStdoutHandlerName)
+func DisableDefaultStdout() {
+	DelHandler(DefaultStdoutHandlerName)
 }
 
-func (l *Logger) EnableDefaultStdout() Handler {
-	h := l.GetHandler(DefaultStdoutHandlerName)
+func EnableDefaultStdout() Handler {
+	h := GetHandler(DefaultStdoutHandlerName)
 	if h == nil {
 		h = StdoutHandler()
-		l.AddHandler(DefaultStdoutHandlerName, h)
+		AddHandler(DefaultStdoutHandlerName, h)
 	}
 	return h
 }
