@@ -14,6 +14,6 @@ func NewFileLogger(file string) (*FileLogger, error) {
 		return nil, err
 	}
 	l := &FileLogger{}
-	l.BaseLogger = *NewBaseLogger(fp, "", DEBUG, LAYOUT)
+	l.BaseLogger = *NewBaseLogger(fp, DEBUG, defaultTimeLayout)
 	return l, nil
 }

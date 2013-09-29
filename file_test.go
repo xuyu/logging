@@ -11,7 +11,6 @@ func TestFileLogger(t *testing.T) {
 	}
 	SetDefaultLogger(l)
 	SetLevel(INFO)
-	SetPrefix("Prefix")
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 2, "OK")
 	Warning("%d, %s", 3, "OK")

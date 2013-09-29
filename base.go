@@ -9,26 +9,28 @@ import (
 )
 
 const (
-	LAYOUT = "2006-01-02 15:04:05"
+	defaultTimeLayout = "2006-01-02 15:04:05"
+	defaultBufSize    = 1024
 )
 
 type BaseLogger struct {
-	mutex   sync.Mutex
-	prefix  string
-	out     io.WriteCloser
-	lv      level
-	layout  string
-	handler func(log string)
+	mutex  sync.Mutex
+	out    io.WriteCloser
+	lv     level
+	layout string
+	c      chan string
+	predo  func()
 }
 
-func NewBaseLogger(out io.WriteCloser, prefix string, lv level, layout string) *BaseLogger {
-	return &BaseLogger{out: out, prefix: prefix, lv: lv, layout: layout}
-}
-
-func (l *BaseLogger) SetPrefix(prefix string) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	l.prefix = prefix
+func NewBaseLogger(out io.WriteCloser, lv level, layout string) *BaseLogger {
+	l := &BaseLogger{
+		out:    out,
+		lv:     lv,
+		layout: layout,
+	}
+	l.c = make(chan string, defaultBufSize)
+	go l.work()
+	return l
 }
 
 func (l *BaseLogger) SetLevel(lv level) {
@@ -37,59 +39,41 @@ func (l *BaseLogger) SetLevel(lv level) {
 	l.lv = lv
 }
 
-func (l *BaseLogger) SetWriter(out io.WriteCloser) {
+func (l *BaseLogger) emit(lv level, format string, v ...interface{}) {
 	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	l.out = out
-}
-
-func (l *BaseLogger) SetLayout(layout string) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	l.layout = layout
-}
-
-func (l *BaseLogger) timestamp() string {
-	return time.Now().Format(l.layout)
-}
-
-func (l *BaseLogger) head(lv string) string {
-	a := []string{"[", l.timestamp(), "]"}
-	if l.prefix != "" {
-		a = append(a, " ", l.prefix)
+	local_lv := l.lv
+	l.mutex.Unlock()
+	if local_lv > lv {
+		return
 	}
-	a = append(a, " ", lv)
-	return strings.Join(a, "")
+	s := fmt.Sprintf("[%s] %s ", time.Now().Format(l.layout), lv.String())
+	s += fmt.Sprintf(strings.TrimRight(format, "\r\n")+"\n", v...)
+	l.c <- s
 }
 
-func (l *BaseLogger) log(lv string, format string, v ...interface{}) {
-	log := l.head(lv) + " " + fmt.Sprintf(strings.TrimRight(format, "\n")+"\n", v...)
-	if l.handler != nil {
-		l.handler(log)
+func (l *BaseLogger) work() {
+	var s string
+	for {
+		s = <-l.c
+		if l.predo != nil {
+			l.predo()
+		}
+		io.WriteString(l.out, s)
 	}
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	fmt.Fprint(l.out, log)
 }
 
 func (l *BaseLogger) Debug(format string, v ...interface{}) {
-	l.do(DEBUG, format, v...)
+	l.emit(DEBUG, format, v...)
 }
 
 func (l *BaseLogger) Info(format string, v ...interface{}) {
-	l.do(INFO, format, v...)
+	l.emit(INFO, format, v...)
 }
 
 func (l *BaseLogger) Warning(format string, v ...interface{}) {
-	l.do(WARNING, format, v...)
+	l.emit(WARNING, format, v...)
 }
 
 func (l *BaseLogger) Error(format string, v ...interface{}) {
-	l.do(ERROR, format, v...)
-}
-
-func (l *BaseLogger) do(lv level, format string, v ...interface{}) {
-	if l.lv <= lv {
-		l.log(lv.String(), format, v...)
-	}
+	l.emit(ERROR, format, v...)
 }

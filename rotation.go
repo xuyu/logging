@@ -18,12 +18,12 @@ func NewRotationLogger(shortfile string, suffix string) (*RotationLogger, error)
 		return nil, err
 	}
 	l := &RotationLogger{}
-	l.BaseLogger = *NewBaseLogger(file, "", DEBUG, LAYOUT)
+	l.BaseLogger = *NewBaseLogger(file, DEBUG, defaultTimeLayout)
 	l.data = make(map[string]string)
 	l.data["oldfilepath"] = fullfile
 	l.data["linkpath"] = shortfile
 	l.data["suffix"] = suffix
-	l.handler = l.rotation
+	l.predo = l.rotation
 	return l, nil
 }
 
@@ -50,7 +50,7 @@ func mklogfile(filepath, linkpath string) (*os.File, error) {
 	return file, nil
 }
 
-func (l *RotationLogger) rotation(log string) {
+func (l *RotationLogger) rotation() {
 	oldfilepath := l.data["oldfilepath"]
 	linkpath := l.data["linkpath"]
 	suffix := l.data["suffix"]

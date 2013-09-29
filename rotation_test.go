@@ -11,7 +11,6 @@ func TestRotationLogger(t *testing.T) {
 	}
 	SetDefaultLogger(l)
 	SetLevel(INFO)
-	SetPrefix("Prefix")
 	Debug("%d, %s\n", 1, "OK")
 	Info("%d, %s\n", 2, "OK")
 	Warning("%d, %s\n", 3, "OK")
