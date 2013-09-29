@@ -47,7 +47,7 @@ logging.AddHandler("file", l1)
 time rotation handler:
 
 ```go
-l, err := logging.NewRotationHandler("/tmp/tr.log", "060102-15")
+l, err := logging.NewTimeRotationHandler("/tmp/tr.log", "060102-15")
 if err != nil {
 	panic(err)
 }
