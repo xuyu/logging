@@ -6,25 +6,25 @@ import (
 	"time"
 )
 
-type RotationLogger struct {
-	BaseLogger
+type RotationHandler struct {
+	BaseHandler
 	data map[string]string
 }
 
-func NewRotationLogger(shortfile string, suffix string) (*RotationLogger, error) {
+func NewRotationHandler(shortfile string, suffix string) (*RotationHandler, error) {
 	fullfile := strings.Join([]string{shortfile, time.Now().Format(suffix)}, ".")
 	file, err := mklogfile(fullfile, shortfile)
 	if err != nil {
 		return nil, err
 	}
-	l := &RotationLogger{}
-	l.BaseLogger = *NewBaseLogger(file, DEBUG, defaultTimeLayout)
-	l.data = make(map[string]string)
-	l.data["oldfilepath"] = fullfile
-	l.data["linkpath"] = shortfile
-	l.data["suffix"] = suffix
-	l.predo = l.rotation
-	return l, nil
+	r := &RotationHandler{}
+	r.BaseHandler = *NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	r.data = make(map[string]string)
+	r.data["oldfilepath"] = fullfile
+	r.data["linkpath"] = shortfile
+	r.data["suffix"] = suffix
+	r.predo = r.rotation
+	return r, nil
 }
 
 func mklogfile(filepath, linkpath string) (*os.File, error) {
@@ -50,20 +50,18 @@ func mklogfile(filepath, linkpath string) (*os.File, error) {
 	return file, nil
 }
 
-func (l *RotationLogger) rotation() {
-	oldfilepath := l.data["oldfilepath"]
-	linkpath := l.data["linkpath"]
-	suffix := l.data["suffix"]
+func (r *RotationHandler) rotation() {
+	oldfilepath := r.data["oldfilepath"]
+	linkpath := r.data["linkpath"]
+	suffix := r.data["suffix"]
 	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
 	if filepath != oldfilepath {
-		l.mutex.Lock()
-		defer l.mutex.Unlock()
-		l.out.Close()
+		r.out.Close()
 		file, err := mklogfile(filepath, linkpath)
 		if err != nil {
 			return
 		}
-		l.out = file
-		l.data["oldfilepath"] = filepath
+		r.out = file
+		r.data["oldfilepath"] = filepath
 	}
 }

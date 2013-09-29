@@ -3,77 +3,92 @@ package logging
 import (
 	"fmt"
 	"io"
-	"strings"
 	"sync"
+	"text/template"
 	"time"
 )
 
 const (
-	defaultTimeLayout = "2006-01-02 15:04:05"
-	defaultBufSize    = 1024
+	DefaultTimeLayout = "2006-01-02 15:04:05"
+	DefaultFormat     = "[{{.TimeString}}] {{.Level}} {{.Message}}\n"
+	DefaultBufSize    = 1024
 )
 
-type BaseLogger struct {
+type BaseHandler struct {
 	mutex  sync.Mutex
 	out    io.WriteCloser
 	lv     level
 	layout string
-	c      chan string
+	tmpl   *template.Template
+	c      chan *Formatter
 	predo  func()
 }
 
-func NewBaseLogger(out io.WriteCloser, lv level, layout string) *BaseLogger {
-	l := &BaseLogger{
+func NewBaseHandler(out io.WriteCloser, lv level, layout string, format string) *BaseHandler {
+	b := &BaseHandler{
 		out:    out,
 		lv:     lv,
 		layout: layout,
 	}
-	l.c = make(chan string, defaultBufSize)
-	go l.work()
-	return l
+	b.SetFormat(format)
+	b.c = make(chan *Formatter, DefaultBufSize)
+	go b.work()
+	return b
 }
 
-func (l *BaseLogger) SetLevel(lv level) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	l.lv = lv
+func (b *BaseHandler) SetLevel(lv level) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	b.lv = lv
 }
 
-func (l *BaseLogger) emit(lv level, format string, v ...interface{}) {
-	l.mutex.Lock()
-	local_lv := l.lv
-	l.mutex.Unlock()
-	if local_lv > lv {
+func (b *BaseHandler) GetLevel() level {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	return b.lv
+}
+
+func (b *BaseHandler) SetTimeLayout(layout string) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	b.layout = layout
+}
+
+func (b *BaseHandler) GetTimeLayout() string {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	return b.layout
+}
+
+func (b *BaseHandler) SetFormat(format string) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	tmpl, err := template.New("tmpl").Parse(format)
+	if err != nil {
+		panic(err)
+	}
+	b.tmpl = tmpl
+}
+
+func (b *BaseHandler) Emit(lv level, f string, values ...interface{}) {
+	if b.GetLevel() > lv {
 		return
 	}
-	s := fmt.Sprintf("[%s] %s ", time.Now().Format(l.layout), lv.String())
-	s += fmt.Sprintf(strings.TrimRight(format, "\r\n")+"\n", v...)
-	l.c <- s
-}
-
-func (l *BaseLogger) work() {
-	var s string
-	for {
-		s = <-l.c
-		if l.predo != nil {
-			l.predo()
-		}
-		io.WriteString(l.out, s)
+	fm := &Formatter{
+		TimeString: time.Now().Format(b.GetTimeLayout()),
+		Level:      lv,
+		Message:    fmt.Sprintf(f, values...),
 	}
+	b.c <- fm
 }
 
-func (l *BaseLogger) Debug(format string, v ...interface{}) {
-	l.emit(DEBUG, format, v...)
-}
-
-func (l *BaseLogger) Info(format string, v ...interface{}) {
-	l.emit(INFO, format, v...)
-}
-
-func (l *BaseLogger) Warning(format string, v ...interface{}) {
-	l.emit(WARNING, format, v...)
-}
-
-func (l *BaseLogger) Error(format string, v ...interface{}) {
-	l.emit(ERROR, format, v...)
+func (b *BaseHandler) work() {
+	var fm *Formatter
+	for {
+		fm = <-b.c
+		if b.predo != nil {
+			b.predo()
+		}
+		b.tmpl.Execute(b.out, fm)
+	}
 }

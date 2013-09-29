@@ -4,16 +4,16 @@ import (
 	"os"
 )
 
-type FileLogger struct {
-	BaseLogger
+type FileHandler struct {
+	BaseHandler
 }
 
-func NewFileLogger(file string) (*FileLogger, error) {
+func NewFileHandler(file string) (*FileHandler, error) {
 	fp, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)
 	if err != nil {
 		return nil, err
 	}
-	l := &FileLogger{}
-	l.BaseLogger = *NewBaseLogger(fp, DEBUG, defaultTimeLayout)
-	return l, nil
+	f := &FileHandler{}
+	f.BaseHandler = *NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
+	return f, nil
 }

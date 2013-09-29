@@ -7,11 +7,13 @@ logging library in golang base on log pkg
 features
 --------
 
--support logging level
+	* support logging level
 
--support file logger
+	* support file handler
 
--support rotation logger(by filename)
+	* support rotation handler(by filename)
+
+	* support multi handlers
 
 
 example
@@ -21,34 +23,42 @@ example
 import "github.com/xuyu/logging"
 ```
 
-simple usage:
+stdout handler:
 
 ```go
-logging.SetLevel(INFO)
+logging.DefaultLogger.EnableDefaultStdout().SetLevel(INFO)
 logging.Debug("%d, %s", 1, "OK")
 logging.Error("%d, %s", 4, "OK")
 ```
 
-simple file logger:
+simple file handler:
 
 ```go
-l, err := logging.NewFileLogger("/tmp/file.log")
+l, err := logging.NewFileHandler("/tmp/file.log")
 if err != nil {
 	panic(err)
 }
-logging.SetDefaultLogger(l)
+logging.DefaultLogger.AddHandler("file", l)
 ...
 ```
 
-rotation logger:
+rotation handler:
 
 ```go
-l, err := logging.NewRotationLogger("/tmp/rotation.log", "060102-15")
+l, err := logging.NewRotationHandler("/tmp/rotation.log", "060102-15")
 if err != nil {
 	panic(err)
 }
-logging.SetDefaultLogger(l)
+logging.DefaultLogger.AddHandler("rotation", l)
 ...
 ```
 
-default logging write to os.Stdout
+multi handler:
+
+```go
+...
+logging.DefaultLogger.EnableDefaultStdout().SetLevel(INFO)
+logging.DefaultLogger.AddHandler("file", l1)
+logging.DefaultLogger.AddHandler("rotation", l2)
+...
+```

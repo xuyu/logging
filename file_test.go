@@ -4,13 +4,13 @@ import (
 	"testing"
 )
 
-func TestFileLogger(t *testing.T) {
-	l, err := NewFileLogger("/tmp/file.log")
+func TestFileHandler(t *testing.T) {
+	f, err := NewFileHandler("/tmp/file.log")
 	if err != nil {
 		t.Fatal(err)
 	}
-	SetDefaultLogger(l)
-	SetLevel(INFO)
+	f.SetLevel(INFO)
+	DefaultLogger.AddHandler("file", f)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 2, "OK")
 	Warning("%d, %s", 3, "OK")
