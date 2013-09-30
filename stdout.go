@@ -9,14 +9,14 @@ const (
 )
 
 func DisableDefaultStdout() {
-	DelHandler(DefaultStdoutHandlerName)
+	delete(DefaultLogger.Handlers, DefaultStdoutHandlerName)
 }
 
 func EnableDefaultStdout() Handler {
-	h := GetHandler(DefaultStdoutHandlerName)
-	if h == nil {
+	h, exists := DefaultLogger.Handlers[DefaultStdoutHandlerName]
+	if !exists {
 		h = StdoutHandler()
-		AddHandler(DefaultStdoutHandlerName, h)
+		DefaultLogger.Handlers[DefaultStdoutHandlerName] = h
 	}
 	return h
 }

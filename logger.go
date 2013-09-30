@@ -1,31 +1,23 @@
 package logging
 
 type Logger struct {
-	handlers map[string]Handler
+	Handlers map[string]Handler
 }
 
 func NewLogger() *Logger {
 	return &Logger{
-		handlers: make(map[string]Handler),
+		Handlers: make(map[string]Handler),
 	}
 }
 
 var DefaultLogger *Logger = NewLogger()
 
 func (l *Logger) AddHandler(name string, h Handler) {
-	l.handlers[name] = h
-}
-
-func (l *Logger) DelHandler(name string) {
-	delete(l.handlers, name)
-}
-
-func (l *Logger) GetHandler(name string) Handler {
-	return l.handlers[name]
+	l.Handlers[name] = h
 }
 
 func (l *Logger) log(level LogLevel, format string, values ...interface{}) {
-	for _, h := range l.handlers {
+	for _, h := range l.Handlers {
 		if h.GetLevel() > level {
 			continue
 		}
@@ -35,14 +27,6 @@ func (l *Logger) log(level LogLevel, format string, values ...interface{}) {
 
 func AddHandler(name string, h Handler) {
 	DefaultLogger.AddHandler(name, h)
-}
-
-func DelHandler(name string) {
-	DefaultLogger.DelHandler(name)
-}
-
-func GetHandler(name string) Handler {
-	return DefaultLogger.GetHandler(name)
 }
 
 func Debug(format string, values ...interface{}) {
