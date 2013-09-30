@@ -13,7 +13,7 @@ func NewSingleFileHandler(file string) (*SingleFileHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := &SingleFileHandler{}
-	f.BaseHandler = NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
-	return f, nil
+	h := &SingleFileHandler{}
+	h.BaseHandler = NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
+	return h, nil
 }

@@ -13,22 +13,22 @@ type TimeRotationHandler struct {
 }
 
 func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandler, error) {
-	r := &TimeRotationHandler{}
+	h := &TimeRotationHandler{}
 	fullfile := strings.Join([]string{shortfile, time.Now().Format(suffix)}, ".")
-	file, err := r.OpenFile(fullfile, shortfile)
+	file, err := h.OpenFile(fullfile, shortfile)
 	if err != nil {
 		return nil, err
 	}
-	r.BaseHandler = NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
-	r.BaseHandler.PredoFunc = r.Rotate
-	r.LocalData = make(map[string]string)
-	r.LocalData["oldfilepath"] = fullfile
-	r.LocalData["linkpath"] = shortfile
-	r.LocalData["suffix"] = suffix
-	return r, nil
+	h.BaseHandler = NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	h.PredoFunc = h.Rotate
+	h.LocalData = make(map[string]string)
+	h.LocalData["oldfilepath"] = fullfile
+	h.LocalData["linkpath"] = shortfile
+	h.LocalData["suffix"] = suffix
+	return h, nil
 }
 
-func (r *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, error) {
+func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, error) {
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
 			if _, err := os.Create(filepath); err != nil {
@@ -51,19 +51,19 @@ func (r *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 	return file, nil
 }
 
-func (r *TimeRotationHandler) Rotate(io.ReadWriter) {
-	oldfilepath := r.LocalData["oldfilepath"]
-	linkpath := r.LocalData["linkpath"]
-	suffix := r.LocalData["suffix"]
+func (h *TimeRotationHandler) Rotate(io.ReadWriter) {
+	oldfilepath := h.LocalData["oldfilepath"]
+	linkpath := h.LocalData["linkpath"]
+	suffix := h.LocalData["suffix"]
 	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
 	if filepath != oldfilepath {
-		r.BaseHandler.Writer.Close()
-		file, err := r.OpenFile(filepath, linkpath)
+		h.Writer.Close()
+		file, err := h.OpenFile(filepath, linkpath)
 		if err != nil {
-			r.BaseHandler.GotError(err)
+			h.GotError(err)
 			return
 		}
-		r.BaseHandler.Writer = file
-		r.LocalData["oldfilepath"] = filepath
+		h.Writer = file
+		h.LocalData["oldfilepath"] = filepath
 	}
 }

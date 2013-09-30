@@ -55,8 +55,8 @@ const (
 	DISABLE LogLevel = 255
 )
 
-func (l *LogLevel) String() string {
-	switch *l {
+func (level *LogLevel) String() string {
+	switch *level {
 	case DEBUG:
 		return "DEBUG"
 	case INFO:

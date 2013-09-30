@@ -28,100 +28,100 @@ type BaseHandler struct {
 }
 
 func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) *BaseHandler {
-	b := &BaseHandler{
+	h := &BaseHandler{
 		Writer:     out,
 		Level:      level,
 		TimeLayout: layout,
 	}
-	b.SetFormat(format)
-	b.RecordChan = make(chan *Record, DefaultBufSize)
-	b.GotError = b.CloseWhenError
-	go b.BackendWriteRecord()
-	return b
+	h.SetFormat(format)
+	h.RecordChan = make(chan *Record, DefaultBufSize)
+	h.GotError = h.CloseWhenError
+	go h.BackendWriteRecord()
+	return h
 }
 
-func (b *BaseHandler) SetLevel(level LogLevel) {
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
-	b.Level = level
+func (h *BaseHandler) SetLevel(level LogLevel) {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	h.Level = level
 }
 
-func (b *BaseHandler) GetLevel() LogLevel {
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
-	return b.Level
+func (h *BaseHandler) GetLevel() LogLevel {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	return h.Level
 }
 
-func (b *BaseHandler) SetTimeLayout(layout string) {
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
-	b.TimeLayout = layout
+func (h *BaseHandler) SetTimeLayout(layout string) {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	h.TimeLayout = layout
 }
 
-func (b *BaseHandler) GetTimeLayout() string {
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
-	return b.TimeLayout
+func (h *BaseHandler) GetTimeLayout() string {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	return h.TimeLayout
 }
 
-func (b *BaseHandler) SetFormat(format string) error {
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
+func (h *BaseHandler) SetFormat(format string) error {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
 	tmpl, err := template.New("tmpl").Parse(format)
 	if err != nil {
 		return err
 	}
-	b.Tmpl = tmpl
+	h.Tmpl = tmpl
 	return nil
 }
 
-func (b *BaseHandler) Emit(level LogLevel, f string, values ...interface{}) {
-	if b.GetLevel() > level {
+func (h *BaseHandler) Emit(level LogLevel, f string, values ...interface{}) {
+	if h.GetLevel() > level {
 		return
 	}
 	rd := &Record{
-		TimeString: time.Now().Format(b.GetTimeLayout()),
+		TimeString: time.Now().Format(h.GetTimeLayout()),
 		Level:      level,
 		Message:    fmt.Sprintf(f, values...),
 	}
-	b.RecordChan <- rd
+	h.RecordChan <- rd
 }
 
-func (b *BaseHandler) PanicError(err error) {
+func (h *BaseHandler) PanicError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (b *BaseHandler) IgnoreError(error) {
+func (h *BaseHandler) IgnoreError(error) {
 }
 
-func (b *BaseHandler) CloseWhenError(err error) {
+func (h *BaseHandler) CloseWhenError(err error) {
 	if err != nil {
-		b.Writer = nil
+		h.Writer = nil
 	}
 }
 
-func (b *BaseHandler) BackendWriteRecord() {
+func (h *BaseHandler) BackendWriteRecord() {
 	var rd *Record
 	buf := bytes.NewBuffer(nil)
 	for {
-		rd = <-b.RecordChan
-		if b.Writer != nil {
+		rd = <-h.RecordChan
+		if h.Writer != nil {
 			buf.Reset()
-			if err := b.Tmpl.Execute(buf, rd); err != nil {
-				b.GotError(err)
+			if err := h.Tmpl.Execute(buf, rd); err != nil {
+				h.GotError(err)
 				continue
 			}
-			if b.PredoFunc != nil {
-				b.PredoFunc(buf)
+			if h.PredoFunc != nil {
+				h.PredoFunc(buf)
 			}
-			n, err := io.Copy(b.Writer, buf)
+			n, err := io.Copy(h.Writer, buf)
 			if err != nil {
-				b.GotError(err)
+				h.GotError(err)
 			}
-			if b.WriteN != nil {
-				b.WriteN(int64(n))
+			if h.WriteN != nil {
+				h.WriteN(int64(n))
 			}
 		}
 	}

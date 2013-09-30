@@ -78,8 +78,8 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 		return nil, err
 	}
 	h.BaseHandler = NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
-	h.BaseHandler.PredoFunc = h.Rotate
-	h.BaseHandler.WriteN = h.AfterWrite
+	h.PredoFunc = h.Rotate
+	h.WriteN = h.AfterWrite
 	return h, nil
 }
 
@@ -131,20 +131,20 @@ func (h *SizeRotationHandler) Rotate(io.ReadWriter) {
 		return
 	}
 	h.CurFileSize = 0
-	h.BaseHandler.Writer.Close()
+	h.Writer.Close()
 	name, err := h.ReleaseFiles()
 	if err != nil {
-		h.BaseHandler.GotError(err)
+		h.GotError(err)
 		return
 	}
 	if err := os.Rename(h.FileName, name); err != nil {
-		h.BaseHandler.GotError(err)
+		h.GotError(err)
 		return
 	}
 	fp, err := h.OpenCreateFile(h.FileName)
 	if err != nil {
-		h.BaseHandler.GotError(err)
+		h.GotError(err)
 		return
 	}
-	h.BaseHandler.Writer = fp
+	h.Writer = fp
 }
