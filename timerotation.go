@@ -38,6 +38,7 @@ func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 			return nil, err
 		}
 	}
+	os.Remove(linkpath)
 	var fn string
 	if err := os.Symlink(filepath, linkpath); err != nil {
 		fn = filepath
