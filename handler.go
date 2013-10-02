@@ -50,7 +50,7 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) *
 	}
 	h.SetFormat(format)
 	h.RecordChan = make(chan *Record, DefaultBufSize)
-	h.GotError = h.CloseWhenError
+	h.GotError = h.PanicError
 	go h.BackendWriteRecord()
 	return h
 }
@@ -108,36 +108,28 @@ func (h *BaseHandler) PanicError(err error) {
 	}
 }
 
-func (h *BaseHandler) IgnoreError(error) {
-}
-
-func (h *BaseHandler) CloseWhenError(err error) {
-	if err != nil {
-		h.Writer = nil
-	}
-}
-
 func (h *BaseHandler) BackendWriteRecord() {
-	var rd *Record
+	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
 	for {
 		rd = <-h.RecordChan
-		if h.Writer != nil {
-			buf.Reset()
-			if err := h.Tmpl.Execute(buf, rd); err != nil {
-				h.GotError(err)
-				continue
-			}
-			if h.PredoFunc != nil {
-				h.PredoFunc(buf)
-			}
-			n, err := io.Copy(h.Writer, buf)
-			if err != nil {
-				h.GotError(err)
-			}
-			if h.WriteN != nil {
-				h.WriteN(int64(n))
-			}
+		if h.Writer == nil {
+			continue
+		}
+		buf.Reset()
+		if err := h.Tmpl.Execute(buf, rd); err != nil {
+			h.GotError(err)
+			continue
+		}
+		if h.PredoFunc != nil {
+			h.PredoFunc(buf)
+		}
+		n, err := io.Copy(h.Writer, buf)
+		if err != nil {
+			h.GotError(err)
+		}
+		if h.WriteN != nil {
+			h.WriteN(int64(n))
 		}
 	}
 }
