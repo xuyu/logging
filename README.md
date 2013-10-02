@@ -28,7 +28,8 @@ import "github.com/xuyu/logging"
 stdout handler:
 
 ```go
-logging.EnableDefaultStdout().SetLevel(INFO)
+logging.EnableStdout()
+logging.StdoutHandler.SetLevel(INFO)
 logging.Debug("%d, %s", 1, "OK")
 logging.Error("%d, %s", 4, "OK")
 ```
@@ -59,7 +60,8 @@ multi handler:
 
 ```go
 ...
-logging.EnableDefaultStdout().SetLevel(INFO)
+logging.EnableStdout()
+logging.StdoutHandler.SetLevel(INFO)
 logging.AddHandler("file", l1)
 logging.AddHandler("rotation", l2)
 ...
