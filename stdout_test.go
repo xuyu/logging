@@ -5,7 +5,8 @@ import (
 )
 
 func TestStdoutHandler(t *testing.T) {
-	EnableDefaultStdout().SetLevel(INFO)
+	StdoutHandler.SetLevel(INFO)
+	EnableStdout()
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 2, "OK")
 	Warning("%d, %s", 3, "OK")

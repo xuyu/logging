@@ -5,9 +5,7 @@ type Logger struct {
 }
 
 func NewLogger() *Logger {
-	return &Logger{
-		Handlers: make(map[string]Handler),
-	}
+	return &Logger{Handlers: make(map[string]Handler)}
 }
 
 var DefaultLogger *Logger = NewLogger()

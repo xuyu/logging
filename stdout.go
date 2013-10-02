@@ -5,22 +5,17 @@ import (
 )
 
 const (
-	DefaultStdoutHandlerName = "stdout"
+	StdoutHandlerName = "stdout"
 )
 
-func DisableDefaultStdout() {
-	delete(DefaultLogger.Handlers, DefaultStdoutHandlerName)
+var (
+	StdoutHandler = NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
+)
+
+func DisableStdout() {
+	delete(DefaultLogger.Handlers, StdoutHandlerName)
 }
 
-func EnableDefaultStdout() Handler {
-	h, exists := DefaultLogger.Handlers[DefaultStdoutHandlerName]
-	if !exists {
-		h = StdoutHandler()
-		DefaultLogger.Handlers[DefaultStdoutHandlerName] = h
-	}
-	return h
-}
-
-func StdoutHandler() Handler {
-	return NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
+func EnableStdout() {
+	DefaultLogger.Handlers[StdoutHandlerName] = StdoutHandler
 }
