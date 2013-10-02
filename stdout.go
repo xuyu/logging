@@ -22,7 +22,5 @@ func EnableDefaultStdout() Handler {
 }
 
 func StdoutHandler() Handler {
-	h := NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
-	h.GotError = h.PanicError
-	return h
+	return NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
 }

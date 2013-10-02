@@ -109,17 +109,16 @@ func (h *SizeRotationHandler) ReleaseFiles() (string, error) {
 	for _, name := range fs {
 		suf := strings.TrimPrefix(name+".", h.FileName)
 		if re.MatchString(suf) {
-			fileinfo, err := os.Stat(name)
-			if err != nil {
-				continue
+			if fileinfo, err := os.Stat(name); err == nil {
+				files.Append(FileNameInfo{name, fileinfo})
 			}
-			files.Append(FileNameInfo{name, fileinfo})
 		}
 	}
 	files.Sort()
 	files.RemoveBefore(files.Len() - int(h.MaxFiles))
 	files.RenameIndex(h.FileName)
-	return (h.FileName + "." + strconv.Itoa(files.Len()+1)), nil
+	release := h.FileName + "." + strconv.Itoa(files.Len()+1)
+	return release, nil
 }
 
 func (h *SizeRotationHandler) AfterWrite(n int64) {
