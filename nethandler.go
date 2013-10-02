@@ -36,17 +36,15 @@ func (h *NetHandler) DialTimeout() (net.Conn, error) {
 }
 
 func (h *NetHandler) GotNetError(err error) {
-	if _, ok := err.(net.Error); ok {
-		for {
-			conn, err := h.DialTimeout()
-			if err != nil {
-				time.Sleep(DefaultReconnectDuration * time.Second)
-				continue
-			}
+	if _, ok := err.(net.Error); !ok {
+		h.PanicError(err)
+	}
+	for {
+		conn, err := h.DialTimeout()
+		if err == nil {
 			h.Writer = conn
 			break
 		}
-	} else {
-		h.PanicError(err)
+		time.Sleep(DefaultReconnectDuration * time.Second)
 	}
 }
