@@ -55,7 +55,7 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 	}
 	h.RecordChan = make(chan *Record, DefaultBufSize)
 	h.GotError = h.PanicError
-	go h.BackendWriteRecord()
+	go h.WriteRecord()
 	return h, nil
 }
 
@@ -111,7 +111,7 @@ func (h *BaseHandler) PanicError(err error) {
 	}
 }
 
-func (h *BaseHandler) BackendWriteRecord() {
+func (h *BaseHandler) WriteRecord() {
 	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
 	for {
