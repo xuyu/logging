@@ -77,7 +77,11 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 		fp.Close()
 		return nil, err
 	}
-	h.BaseHandler = NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
+	if err != nil {
+		return nil, err
+	}
+	h.BaseHandler = bh
 	h.PredoFunc = h.Rotate
 	h.WriteN = h.AfterWrite
 	return h, nil

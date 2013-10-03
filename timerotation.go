@@ -19,7 +19,11 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 	if err != nil {
 		return nil, err
 	}
-	h.BaseHandler = NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	if err != nil {
+		return nil, err
+	}
+	h.BaseHandler = bh
 	h.PredoFunc = h.Rotate
 	h.LocalData = make(map[string]string)
 	h.LocalData["oldfilepath"] = fullfile

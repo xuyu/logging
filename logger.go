@@ -1,5 +1,10 @@
 package logging
 
+import (
+	"fmt"
+	"time"
+)
+
 type Logger struct {
 	Handlers map[string]Handler
 }
@@ -14,12 +19,14 @@ func (l *Logger) AddHandler(name string, h Handler) {
 	l.Handlers[name] = h
 }
 
-func (l *Logger) log(level LogLevel, format string, values ...interface{}) {
+func (l *Logger) Log(level LogLevel, format string, values ...interface{}) {
+	rd := Record{
+		Time:    time.Now(),
+		Level:   level,
+		Message: fmt.Sprintf(format, values...),
+	}
 	for _, h := range l.Handlers {
-		if h.GetLevel() > level {
-			continue
-		}
-		h.Emit(level, format, values...)
+		h.Emit(rd)
 	}
 }
 
@@ -28,19 +35,19 @@ func AddHandler(name string, h Handler) {
 }
 
 func Debug(format string, values ...interface{}) {
-	DefaultLogger.log(DEBUG, format, values...)
+	DefaultLogger.Log(DEBUG, format, values...)
 }
 
 func Info(format string, values ...interface{}) {
-	DefaultLogger.log(INFO, format, values...)
+	DefaultLogger.Log(INFO, format, values...)
 }
 
 func Warning(format string, values ...interface{}) {
-	DefaultLogger.log(WARNING, format, values...)
+	DefaultLogger.Log(WARNING, format, values...)
 }
 
 func Error(format string, values ...interface{}) {
-	DefaultLogger.log(ERROR, format, values...)
+	DefaultLogger.Log(ERROR, format, values...)
 }
 
 type LogLevel uint8
@@ -66,4 +73,13 @@ func (level *LogLevel) String() string {
 	default:
 		return ""
 	}
+}
+
+type LevelRange struct {
+	MinLevel LogLevel
+	MaxLevel LogLevel
+}
+
+func (lr *LevelRange) Contain(level LogLevel) bool {
+	return level >= lr.MinLevel && level <= lr.MaxLevel
 }

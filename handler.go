@@ -2,7 +2,6 @@ package logging
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"sync"
 	"text/template"
@@ -17,14 +16,14 @@ const (
 
 type Handler interface {
 	SetLevel(LogLevel)
-	GetLevel() LogLevel
+	SetLevelRange(LogLevel, LogLevel)
 	SetTimeLayout(string)
-	GetTimeLayout() string
 	SetFormat(string) error
-	Emit(LogLevel, string, ...interface{})
+	Emit(Record)
 }
 
 type Record struct {
+	Time       time.Time
 	TimeString string
 	Level      LogLevel
 	Message    string
@@ -34,6 +33,7 @@ type BaseHandler struct {
 	Mutex      sync.Mutex
 	Writer     io.WriteCloser
 	Level      LogLevel
+	LRange     *LevelRange
 	TimeLayout string
 	Tmpl       *template.Template
 	RecordChan chan *Record
@@ -42,17 +42,19 @@ type BaseHandler struct {
 	GotError   func(error)
 }
 
-func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) *BaseHandler {
+func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (*BaseHandler, error) {
 	h := &BaseHandler{
 		Writer:     out,
 		Level:      level,
 		TimeLayout: layout,
 	}
-	h.SetFormat(format)
+	if err := h.SetFormat(format); err != nil {
+		return nil, err
+	}
 	h.RecordChan = make(chan *Record, DefaultBufSize)
 	h.GotError = h.PanicError
 	go h.BackendWriteRecord()
-	return h
+	return h, nil
 }
 
 func (h *BaseHandler) SetLevel(level LogLevel) {
@@ -61,22 +63,16 @@ func (h *BaseHandler) SetLevel(level LogLevel) {
 	h.Level = level
 }
 
-func (h *BaseHandler) GetLevel() LogLevel {
+func (h *BaseHandler) SetLevelRange(min_level, max_level LogLevel) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
-	return h.Level
+	h.LRange = &LevelRange{min_level, max_level}
 }
 
 func (h *BaseHandler) SetTimeLayout(layout string) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 	h.TimeLayout = layout
-}
-
-func (h *BaseHandler) GetTimeLayout() string {
-	h.Mutex.Lock()
-	defer h.Mutex.Unlock()
-	return h.TimeLayout
 }
 
 func (h *BaseHandler) SetFormat(format string) error {
@@ -90,16 +86,15 @@ func (h *BaseHandler) SetFormat(format string) error {
 	return nil
 }
 
-func (h *BaseHandler) Emit(level LogLevel, f string, values ...interface{}) {
-	if h.GetLevel() > level {
+func (h *BaseHandler) Emit(rd Record) {
+	if h.LRange != nil {
+		if !h.LRange.Contain(rd.Level) {
+			return
+		}
+	} else if h.Level > rd.Level {
 		return
 	}
-	rd := &Record{
-		TimeString: time.Now().Format(h.GetTimeLayout()),
-		Level:      level,
-		Message:    fmt.Sprintf(f, values...),
-	}
-	h.RecordChan <- rd
+	h.RecordChan <- &rd
 }
 
 func (h *BaseHandler) PanicError(err error) {
@@ -117,6 +112,7 @@ func (h *BaseHandler) BackendWriteRecord() {
 			continue
 		}
 		buf.Reset()
+		rd.TimeString = rd.Time.Format(h.TimeLayout)
 		if err := h.Tmpl.Execute(buf, rd); err != nil {
 			h.GotError(err)
 			continue

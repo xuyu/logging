@@ -9,8 +9,16 @@ const (
 )
 
 var (
-	StdoutHandler = NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
+	StdoutHandler Handler
 )
+
+func init() {
+	bh, err := NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
+	if err != nil {
+		panic(err)
+	}
+	StdoutHandler = bh
+}
 
 func DisableStdout() {
 	delete(DefaultLogger.Handlers, StdoutHandlerName)

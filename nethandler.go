@@ -26,7 +26,11 @@ func NewNetHandler(network, address string, timeout time.Duration) (*NetHandler,
 	if err != nil {
 		return nil, err
 	}
-	h.BaseHandler = NewBaseHandler(conn, INFO, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewBaseHandler(conn, INFO, DefaultTimeLayout, DefaultFormat)
+	if err != nil {
+		return nil, err
+	}
+	h.BaseHandler = bh
 	h.GotError = h.GotNetError
 	return h, nil
 }
