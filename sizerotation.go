@@ -82,7 +82,7 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 		return nil, err
 	}
 	h.BaseHandler = bh
-	h.PredoFunc = h.Rotate
+	h.Before = h.Rotate
 	h.WriteN = h.AfterWrite
 	return h, nil
 }

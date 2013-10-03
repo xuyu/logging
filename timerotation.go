@@ -24,7 +24,7 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 		return nil, err
 	}
 	h.BaseHandler = bh
-	h.PredoFunc = h.Rotate
+	h.Before = h.Rotate
 	h.LocalData = make(map[string]string)
 	h.LocalData["oldfilepath"] = fullfile
 	h.LocalData["linkpath"] = shortfile

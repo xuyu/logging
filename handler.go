@@ -39,7 +39,7 @@ type BaseHandler struct {
 	Tmpl       *template.Template
 	RecordChan chan *Record
 	Filter     func(*Record) bool
-	PredoFunc  func(io.ReadWriter)
+	Before     func(io.ReadWriter)
 	WriteN     func(int64)
 	GotError   func(error)
 }
@@ -128,8 +128,8 @@ func (h *BaseHandler) WriteRecord() {
 			h.GotError(err)
 			continue
 		}
-		if h.PredoFunc != nil {
-			h.PredoFunc(buf)
+		if h.Before != nil {
+			h.Before(buf)
 		}
 		n, err := io.Copy(h.Writer, buf)
 		if err != nil {
