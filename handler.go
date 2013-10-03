@@ -40,7 +40,7 @@ type BaseHandler struct {
 	RecordChan chan *Record
 	Filter     func(*Record) bool
 	Before     func(io.ReadWriter)
-	WriteN     func(int64)
+	After      func(int64)
 	GotError   func(error)
 }
 
@@ -135,8 +135,8 @@ func (h *BaseHandler) WriteRecord() {
 		if err != nil {
 			h.GotError(err)
 		}
-		if h.WriteN != nil {
-			h.WriteN(int64(n))
+		if h.After != nil {
+			h.After(int64(n))
 		}
 	}
 }
