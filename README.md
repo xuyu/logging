@@ -9,6 +9,8 @@ features
 
 * support logging level
 
+* support handler filter
+
 * support file handler
 
 * support time rotation handler
