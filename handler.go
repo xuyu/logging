@@ -19,6 +19,7 @@ type Handler interface {
 	SetLevelRange(LogLevel, LogLevel)
 	SetTimeLayout(string)
 	SetFormat(string) error
+	SetFilter(func(*Record) bool)
 	Emit(Record)
 }
 
@@ -37,6 +38,7 @@ type BaseHandler struct {
 	TimeLayout string
 	Tmpl       *template.Template
 	RecordChan chan *Record
+	Filter     func(*Record) bool
 	PredoFunc  func(io.ReadWriter)
 	WriteN     func(int64)
 	GotError   func(error)
@@ -86,6 +88,12 @@ func (h *BaseHandler) SetFormat(format string) error {
 	return nil
 }
 
+func (h *BaseHandler) SetFilter(f func(*Record) bool) {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	h.Filter = f
+}
+
 func (h *BaseHandler) Emit(rd Record) {
 	if h.LRange != nil {
 		if !h.LRange.Contain(rd.Level) {
@@ -108,6 +116,9 @@ func (h *BaseHandler) BackendWriteRecord() {
 	buf := bytes.NewBuffer(nil)
 	for {
 		rd = <-h.RecordChan
+		if h.Filter != nil && h.Filter(rd) {
+			continue
+		}
 		if h.Writer == nil {
 			continue
 		}
