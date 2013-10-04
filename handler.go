@@ -19,6 +19,7 @@ type Handler interface {
 	SetLevelRange(LogLevel, LogLevel)
 	SetTimeLayout(string)
 	SetFormat(string) error
+	SetFilter(func(*Record) bool)
 	Emit(Record)
 }
 
@@ -37,8 +38,9 @@ type BaseHandler struct {
 	TimeLayout string
 	Tmpl       *template.Template
 	RecordChan chan *Record
-	PredoFunc  func(io.ReadWriter)
-	WriteN     func(int64)
+	Filter     func(*Record) bool
+	Before     func(io.ReadWriter)
+	After      func(int64)
 	GotError   func(error)
 }
 
@@ -86,6 +88,12 @@ func (h *BaseHandler) SetFormat(format string) error {
 	return nil
 }
 
+func (h *BaseHandler) SetFilter(f func(*Record) bool) {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	h.Filter = f
+}
+
 func (h *BaseHandler) Emit(rd Record) {
 	if h.LRange != nil {
 		if !h.LRange.Contain(rd.Level) {
@@ -108,6 +116,9 @@ func (h *BaseHandler) WriteRecord() {
 	buf := bytes.NewBuffer(nil)
 	for {
 		rd = <-h.RecordChan
+		if h.Filter != nil && h.Filter(rd) {
+			continue
+		}
 		if h.Writer == nil {
 			continue
 		}
@@ -117,15 +128,15 @@ func (h *BaseHandler) WriteRecord() {
 			h.GotError(err)
 			continue
 		}
-		if h.PredoFunc != nil {
-			h.PredoFunc(buf)
+		if h.Before != nil {
+			h.Before(buf)
 		}
 		n, err := io.Copy(h.Writer, buf)
 		if err != nil {
 			h.GotError(err)
 		}
-		if h.WriteN != nil {
-			h.WriteN(int64(n))
+		if h.After != nil {
+			h.After(int64(n))
 		}
 	}
 }
