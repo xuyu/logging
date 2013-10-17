@@ -30,7 +30,8 @@ import "github.com/xuyu/logging"
 stdout handler:
 
 ```go
-logging.EnableStdout()
+// this is done by default
+// logging.EnableStdout()
 logging.StdoutHandler.SetLevel(INFO)
 logging.Debug("%d, %s", 1, "OK")
 logging.Error("%d, %s", 4, "OK")
