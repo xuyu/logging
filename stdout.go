@@ -18,6 +18,7 @@ func init() {
 		panic(err)
 	}
 	StdoutHandler = bh
+	EnableStdout()
 }
 
 func DisableStdout() {
