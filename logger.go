@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -59,6 +60,21 @@ const (
 	ERROR   LogLevel = 4
 	DISABLE LogLevel = 255
 )
+
+func StringToLogLevel(s string) LogLevel {
+	switch strings.ToUpper(s) {
+	case "DEBUG":
+		return DEBUG
+	case "INFO":
+		return INFO
+	case "WARNING":
+		return WARNING
+	case "ERROR":
+		return ERROR
+	default:
+		return DISABLE
+	}
+}
 
 func (level *LogLevel) String() string {
 	switch *level {

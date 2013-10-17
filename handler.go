@@ -16,7 +16,9 @@ const (
 
 type Handler interface {
 	SetLevel(LogLevel)
+	SetLevelString(string)
 	SetLevelRange(LogLevel, LogLevel)
+	SetLevelRangeString(string, string)
 	SetTimeLayout(string)
 	SetFormat(string) error
 	SetFilter(func(*Record) bool)
@@ -65,10 +67,18 @@ func (h *BaseHandler) SetLevel(level LogLevel) {
 	h.Level = level
 }
 
+func (h *BaseHandler) SetLevelString(s string) {
+	h.SetLevel(StringToLogLevel(s))
+}
+
 func (h *BaseHandler) SetLevelRange(min_level, max_level LogLevel) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 	h.LRange = &LevelRange{min_level, max_level}
+}
+
+func (h *BaseHandler) SetLevelRangeString(smin, smax string) {
+	h.SetLevelRange(StringToLogLevel(smin), StringToLogLevel(smax))
 }
 
 func (h *BaseHandler) SetTimeLayout(layout string) {
