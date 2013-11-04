@@ -11,9 +11,10 @@ const (
 
 type NetHandler struct {
 	*BaseHandler
-	Network string
-	Address string
-	Timeout time.Duration
+	Network     string
+	Address     string
+	OldGotError func(error)
+	Timeout     time.Duration
 }
 
 func NewNetHandler(network, address string, timeout time.Duration) (*NetHandler, error) {
@@ -31,6 +32,7 @@ func NewNetHandler(network, address string, timeout time.Duration) (*NetHandler,
 		return nil, err
 	}
 	h.BaseHandler = bh
+	h.OldGotError = h.GotError
 	h.GotError = h.GotNetError
 	return h, nil
 }
@@ -41,7 +43,7 @@ func (h *NetHandler) DialTimeout() (net.Conn, error) {
 
 func (h *NetHandler) GotNetError(err error) {
 	if _, ok := err.(net.Error); !ok {
-		h.BaseHandler.GotError(err)
+		h.OldGotError(err)
 		return
 	}
 	for {
