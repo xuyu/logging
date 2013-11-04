@@ -23,6 +23,7 @@ type Handler interface {
 	SetFormat(string) error
 	SetFilter(func(*Record) bool)
 	Emit(Record)
+	Panic(bool)
 }
 
 type Record struct {
@@ -56,7 +57,6 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 		return nil, err
 	}
 	h.RecordChan = make(chan *Record, DefaultBufSize)
-	h.GotError = h.PanicError
 	go h.WriteRecord()
 	return h, nil
 }
@@ -118,6 +118,17 @@ func (h *BaseHandler) Emit(rd Record) {
 func (h *BaseHandler) PanicError(err error) {
 	if err != nil {
 		panic(err)
+	}
+}
+
+func (h *BaseHandler) IgnoreError(error) {
+}
+
+func (h *BaseHandler) Panic(b bool) {
+	if b {
+		h.GotError = h.PanicError
+	} else {
+		h.GotError = h.IgnoreError
 	}
 }
 
