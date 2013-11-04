@@ -11,6 +11,7 @@ func TestSizeRotationHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	h.SetLevel(INFO)
+	h.Panic(true)
 	AddHandler("sr", h)
 	for i := 0; i < 100; i++ {
 		Debug("%d, %s", i, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")

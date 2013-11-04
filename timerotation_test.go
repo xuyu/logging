@@ -11,6 +11,7 @@ func TestTimeRotationHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.SetLevel(INFO)
+	r.Panic(true)
 	AddHandler("rotation", r)
 	for i := 0; i < 3; i++ {
 		Debug("%d, %s", 1, "OK")

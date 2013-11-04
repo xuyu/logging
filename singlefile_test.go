@@ -10,6 +10,7 @@ func TestSingleFileHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.SetLevel(INFO)
+	f.Panic(true)
 	AddHandler("file", f)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 2, "OK")
