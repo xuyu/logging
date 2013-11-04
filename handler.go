@@ -15,6 +15,7 @@ const (
 )
 
 type Handler interface {
+	SetBufSize(int)
 	SetLevel(LogLevel)
 	SetLevelString(string)
 	SetLevelRange(LogLevel, LogLevel)
@@ -40,7 +41,8 @@ type BaseHandler struct {
 	LRange     *LevelRange
 	TimeLayout string
 	Tmpl       *template.Template
-	RecordChan chan *Record
+	Buffer     chan *Record
+	BufSize    int
 	Filter     func(*Record) bool
 	Before     func(io.ReadWriter)
 	After      func(int64)
@@ -56,9 +58,14 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 	if err := h.SetFormat(format); err != nil {
 		return nil, err
 	}
-	h.RecordChan = make(chan *Record, DefaultBufSize)
+	h.BufSize = DefaultBufSize
 	go h.WriteRecord()
 	return h, nil
+}
+
+func (h *BaseHandler) SetBufSize(size int) {
+	h.BufSize = size
+	close(h.Buffer)
 }
 
 func (h *BaseHandler) SetLevel(level LogLevel) {
@@ -112,7 +119,7 @@ func (h *BaseHandler) Emit(rd Record) {
 	} else if h.Level > rd.Level {
 		return
 	}
-	h.RecordChan <- &rd
+	h.Buffer <- &rd
 }
 
 func (h *BaseHandler) PanicError(err error) {
@@ -135,8 +142,13 @@ func (h *BaseHandler) Panic(b bool) {
 func (h *BaseHandler) WriteRecord() {
 	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
+	h.Buffer = make(chan *Record, h.BufSize)
 	for {
-		rd = <-h.RecordChan
+		rd = <-h.Buffer
+		if rd == nil {
+			go h.WriteRecord()
+			break
+		}
 		if h.Filter != nil && h.Filter(rd) {
 			continue
 		}
