@@ -58,6 +58,7 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 	if err := h.SetFormat(format); err != nil {
 		return nil, err
 	}
+	h.Panic(false)
 	h.BufSize = DefaultBufSize
 	h.Buffer = make(chan *Record, h.BufSize)
 	go h.WriteRecord()
