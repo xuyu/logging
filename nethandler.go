@@ -41,7 +41,8 @@ func (h *NetHandler) DialTimeout() (net.Conn, error) {
 
 func (h *NetHandler) GotNetError(err error) {
 	if _, ok := err.(net.Error); !ok {
-		h.PanicError(err)
+		h.BaseHandler.GotError(err)
+		return
 	}
 	for {
 		conn, err := h.DialTimeout()
