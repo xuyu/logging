@@ -59,6 +59,7 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 		return nil, err
 	}
 	h.BufSize = DefaultBufSize
+	h.Buffer = make(chan *Record, h.BufSize)
 	go h.WriteRecord()
 	return h, nil
 }
@@ -142,10 +143,10 @@ func (h *BaseHandler) Panic(b bool) {
 func (h *BaseHandler) WriteRecord() {
 	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
-	h.Buffer = make(chan *Record, h.BufSize)
 	for {
 		rd = <-h.Buffer
 		if rd == nil {
+			h.Buffer = make(chan *Record, h.BufSize)
 			go h.WriteRecord()
 			break
 		}
