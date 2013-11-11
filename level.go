@@ -40,7 +40,7 @@ func (level *LogLevel) String() string {
 	case ERROR:
 		return "ERROR"
 	default:
-		return ""
+		return "DISABLE"
 	}
 }
 
