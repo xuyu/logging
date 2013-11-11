@@ -66,8 +66,10 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 }
 
 func (h *BaseHandler) SetBufSize(size int) {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
 	h.BufSize = size
-	close(h.Buffer)
+	h.Buffer <- nil
 }
 
 func (h *BaseHandler) SetLevel(level LogLevel) {
@@ -121,6 +123,8 @@ func (h *BaseHandler) Emit(rd Record) {
 	} else if h.Level > rd.Level {
 		return
 	}
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
 	h.Buffer <- &rd
 }
 
@@ -141,13 +145,28 @@ func (h *BaseHandler) Panic(b bool) {
 	}
 }
 
+func (h *BaseHandler) upgrade_buffer() {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	buffer := make(chan *Record, h.BufSize)
+	for {
+		remain, ok := <-h.Buffer
+		if !ok {
+			break
+		}
+		buffer <- remain
+	}
+	close(h.Buffer)
+	h.Buffer = buffer
+}
+
 func (h *BaseHandler) WriteRecord() {
 	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
 	for {
 		rd = <-h.Buffer
 		if rd == nil {
-			h.Buffer = make(chan *Record, h.BufSize)
+			h.upgrade_buffer()
 			go h.WriteRecord()
 			break
 		}
