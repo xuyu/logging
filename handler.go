@@ -148,15 +148,15 @@ func (h *BaseHandler) Panic(b bool) {
 func (h *BaseHandler) upgrade_buffer() {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
+	close(h.Buffer)
 	buffer := make(chan *Record, h.BufSize)
 	for {
 		remain, ok := <-h.Buffer
-		if !ok {
+		if remain == nil || !ok {
 			break
 		}
 		buffer <- remain
 	}
-	close(h.Buffer)
 	h.Buffer = buffer
 }
 
