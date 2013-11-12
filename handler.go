@@ -160,6 +160,33 @@ func (h *BaseHandler) upgrade_buffer() {
 	h.Buffer = buffer
 }
 
+func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
+	defer func() {
+		if err := recover(); err != nil {
+			h.GotError(err.(error))
+		}
+	}()
+	if h.Filter != nil && h.Filter(rd) {
+		return
+	}
+	rd.TimeString = rd.Time.Format(h.TimeLayout)
+	buf.Reset()
+	if err := h.Tmpl.Execute(buf, rd); err != nil {
+		h.GotError(err)
+		return
+	}
+	if h.Before != nil {
+		h.Before(buf)
+	}
+	n, err := io.Copy(h.Writer, buf)
+	if err != nil {
+		h.GotError(err)
+	}
+	if h.After != nil {
+		h.After(int64(n))
+	}
+}
+
 func (h *BaseHandler) WriteRecord() {
 	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
@@ -170,27 +197,6 @@ func (h *BaseHandler) WriteRecord() {
 			go h.WriteRecord()
 			break
 		}
-		if h.Filter != nil && h.Filter(rd) {
-			continue
-		}
-		if h.Writer == nil {
-			continue
-		}
-		buf.Reset()
-		rd.TimeString = rd.Time.Format(h.TimeLayout)
-		if err := h.Tmpl.Execute(buf, rd); err != nil {
-			h.GotError(err)
-			continue
-		}
-		if h.Before != nil {
-			h.Before(buf)
-		}
-		n, err := io.Copy(h.Writer, buf)
-		if err != nil {
-			h.GotError(err)
-		}
-		if h.After != nil {
-			h.After(int64(n))
-		}
+		h.handle_record(rd, buf)
 	}
 }
