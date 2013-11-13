@@ -7,7 +7,7 @@ logging library in golang base on log pkg
 features
 --------
 
-* support logging level
+* support logging level and level range
 
 * support handler filter
 
@@ -24,17 +24,15 @@ example
 -------
 
 ```go
-import "github.com/xuyu/logging"
+import "logging"
 ```
 
 stdout handler:
 
 ```go
-// this is done by default
-// logging.EnableStdout()
 logging.StdoutHandler.SetLevel(INFO)
 logging.Debug("%d, %s", 1, "OK")
-logging.Error("%d, %s", 4, "OK")
+logging.Error("%d, %s", 1, "OK")
 ```
 
 simple file handler:
@@ -44,7 +42,7 @@ l, err := logging.NewSingleFileHandler("/tmp/sf.log")
 if err != nil {
 	panic(err)
 }
-logging.AddHandler("file", l1)
+logging.AddHandler("file", l)
 ...
 ```
 
@@ -55,7 +53,7 @@ l, err := logging.NewTimeRotationHandler("/tmp/tr.log", "060102-15")
 if err != nil {
 	panic(err)
 }
-logging.AddHandler("rotation", l2)
+logging.AddHandler("rotation", l)
 ...
 ```
 
@@ -63,21 +61,20 @@ multi handler:
 
 ```go
 ...
-logging.EnableStdout()
 logging.StdoutHandler.SetLevel(INFO)
-logging.AddHandler("file", l1)
-logging.AddHandler("rotation", l2)
+logging.AddHandler("file", file_handler)
+logging.AddHandler("rotation", rotation_handler)
 ...
 ```
 
 size rotation handler
 
 ```go
-h, err := logging.NewSizeRotationHandler("/tmp/sr.log", 1024, 5)
+l, err := logging.NewSizeRotationHandler("/tmp/sr.log", 1024, 5)
 if err != nil {
 	panic(err)
 }
-h.SetLevel(INFO)
-logging.AddHandler(h)
+l.SetLevel(INFO)
+logging.AddHandler("sr", l)
 ...
 ```
