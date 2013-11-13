@@ -26,9 +26,10 @@ func init() {
 func TestSetBufSize(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
-	h.SetBufSize(1)
-	if h.BufSize != 1 {
+	h.SetBufSize(128)
+	if h.BufSize != 128 {
 		t.Fail()
 	}
 	Debug("%d, %s", 2, "OK")
@@ -41,6 +42,7 @@ func TestSetBufSize(t *testing.T) {
 func TestSetLevel(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	h.SetLevel(INFO)
 	Debug("%d, %s", 1, "OK")
@@ -53,6 +55,7 @@ func TestSetLevel(t *testing.T) {
 func TestSetLevelString(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	h.SetLevelString("info")
 	Debug("%d, %s", 1, "OK")
@@ -65,6 +68,7 @@ func TestSetLevelString(t *testing.T) {
 func TestSetLevelRange(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
 	Error("%d, %s", 1, "OK")
@@ -76,11 +80,13 @@ func TestSetLevelRange(t *testing.T) {
 	if b.Len() != 34*4-2 {
 		t.Fail()
 	}
+	h.LRange = nil
 }
 
 func TestSetLevelRangeString(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
 	Error("%d, %s", 1, "OK")
@@ -92,22 +98,26 @@ func TestSetLevelRangeString(t *testing.T) {
 	if b.Len() != 34*4-2 {
 		t.Fail()
 	}
+	h.LRange = nil
 }
 
 func TestSetTimeLayout(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	h.SetTimeLayout("2006/01/02-15:04:05")
 	Error("%d, %s", 1, "OK")
 	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 34 {
 		t.Fail()
 	}
+	h.SetTimeLayout(DefaultTimeLayout)
 }
 
 func TestSetFilter(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	h.SetFilter(func(rd *Record) bool {
 		return strings.Contains(rd.Message, "OK")
 	})
@@ -116,11 +126,13 @@ func TestSetFilter(t *testing.T) {
 	if b.Len() != 0 {
 		t.Fail()
 	}
+	h.SetFilter(nil)
 }
 
 func TestPanicError(t *testing.T) {
 	b.Reset()
 	AddHandler("b", h)
+	h.SetLevel(DEBUG)
 	h.SetFilter(func(*Record) bool {
 		panic(errors.New("nothing"))
 		return true
@@ -131,6 +143,7 @@ func TestPanicError(t *testing.T) {
 		t.Fail()
 	}
 	h.set_state(true)
+	h.SetFilter(nil)
 }
 
 func TestNotify(t *testing.T) {
