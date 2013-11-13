@@ -62,10 +62,10 @@ func (h *TimeRotationHandler) Rotate(io.ReadWriter) {
 	suffix := h.LocalData["suffix"]
 	filepath := strings.Join([]string{linkpath, time.Now().Format(suffix)}, ".")
 	if filepath != oldfilepath {
-		h.Writer.Close()
+		h.Writer.(io.Closer).Close()
 		file, err := h.OpenFile(filepath, linkpath)
 		if err != nil {
-			h.GotError(err)
+			h.set_state(false)
 			return
 		}
 		h.Writer = file

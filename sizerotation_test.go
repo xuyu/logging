@@ -8,19 +8,14 @@ import (
 )
 
 func TestSizeRotationHandler(t *testing.T) {
-	DisableStdout()
 	h, err := NewSizeRotationHandler(path.Join(os.TempDir(), "sr.log"), 64, 3)
 	if err != nil {
 		t.Fatal(err)
 	}
-	h.SetLevel(INFO)
-	h.Panic(true)
 	AddHandler("sr", h)
-	for i := 0; i < 10; i++ {
-		Debug("%d, %s", i, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-		Info("%d, %s", i, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-		Warning("%d, %s", i, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-		Error("%d, %s", i, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-		time.Sleep(100 * time.Millisecond)
-	}
+	Debug("%d, %s", 1, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	Info("%d, %s", 2, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	Warning("%d, %s", 3, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	Error("%d, %s", 4, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	time.Sleep(100 * time.Millisecond)
 }

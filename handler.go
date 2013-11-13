@@ -3,7 +3,10 @@ package logging
 import (
 	"bytes"
 	"io"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"text/template"
 	"time"
 )
@@ -24,7 +27,6 @@ type Handler interface {
 	SetFormat(string) error
 	SetFilter(func(*Record) bool)
 	Emit(Record)
-	Panic(bool)
 }
 
 type Record struct {
@@ -36,7 +38,8 @@ type Record struct {
 
 type BaseHandler struct {
 	Mutex      sync.Mutex
-	Writer     io.WriteCloser
+	State      bool
+	Writer     io.Writer
 	Level      LogLevel
 	LRange     *LevelRange
 	TimeLayout string
@@ -46,11 +49,11 @@ type BaseHandler struct {
 	Filter     func(*Record) bool
 	Before     func(io.ReadWriter)
 	After      func(int64)
-	GotError   func(error)
 }
 
-func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (*BaseHandler, error) {
+func NewBaseHandler(out io.Writer, level LogLevel, layout, format string) (*BaseHandler, error) {
 	h := &BaseHandler{
+		State:      true,
 		Writer:     out,
 		Level:      level,
 		TimeLayout: layout,
@@ -58,9 +61,9 @@ func NewBaseHandler(out io.WriteCloser, level LogLevel, layout, format string) (
 	if err := h.SetFormat(format); err != nil {
 		return nil, err
 	}
-	h.Panic(false)
 	h.BufSize = DefaultBufSize
 	h.Buffer = make(chan *Record, h.BufSize)
+	go h.notify()
 	go h.WriteRecord()
 	return h, nil
 }
@@ -128,23 +131,6 @@ func (h *BaseHandler) Emit(rd Record) {
 	h.Buffer <- &rd
 }
 
-func (h *BaseHandler) PanicError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (h *BaseHandler) IgnoreError(error) {
-}
-
-func (h *BaseHandler) Panic(b bool) {
-	if b {
-		h.GotError = h.PanicError
-	} else {
-		h.GotError = h.IgnoreError
-	}
-}
-
 func (h *BaseHandler) upgrade_buffer() {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
@@ -160,19 +146,34 @@ func (h *BaseHandler) upgrade_buffer() {
 	h.Buffer = buffer
 }
 
+func (h *BaseHandler) set_state(state bool) {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	h.State = state
+}
+
+func (h *BaseHandler) get_state() bool {
+	h.Mutex.Lock()
+	defer h.Mutex.Unlock()
+	return h.State
+}
+
 func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	defer func() {
 		if err := recover(); err != nil {
-			h.GotError(err.(error))
+			h.set_state(false)
 		}
 	}()
+	if !h.get_state() {
+		return
+	}
 	if h.Filter != nil && h.Filter(rd) {
 		return
 	}
 	rd.TimeString = rd.Time.Format(h.TimeLayout)
 	buf.Reset()
 	if err := h.Tmpl.Execute(buf, rd); err != nil {
-		h.GotError(err)
+		h.set_state(false)
 		return
 	}
 	if h.Before != nil {
@@ -180,7 +181,7 @@ func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	}
 	n, err := io.Copy(h.Writer, buf)
 	if err != nil {
-		h.GotError(err)
+		h.set_state(false)
 	}
 	if h.After != nil {
 		h.After(int64(n))
@@ -199,4 +200,14 @@ func (h *BaseHandler) WriteRecord() {
 		}
 		h.handle_record(rd, buf)
 	}
+}
+
+func (h *BaseHandler) notify() {
+	c := make(chan os.Signal)
+	signal.Notify(c, syscall.SIGHUP)
+	for {
+		<-c
+		h.set_state(true)
+	}
+
 }

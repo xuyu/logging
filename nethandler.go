@@ -27,13 +27,11 @@ func NewNetHandler(network, address string, timeout time.Duration) (*NetHandler,
 	if err != nil {
 		return nil, err
 	}
-	bh, err := NewBaseHandler(conn, INFO, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewBaseHandler(conn, DEBUG, DefaultTimeLayout, DefaultFormat)
 	if err != nil {
 		return nil, err
 	}
 	h.BaseHandler = bh
-	h.OldGotError = h.GotError
-	h.GotError = h.GotNetError
 	return h, nil
 }
 
@@ -43,7 +41,7 @@ func (h *NetHandler) DialTimeout() (net.Conn, error) {
 
 func (h *NetHandler) GotNetError(err error) {
 	if _, ok := err.(net.Error); !ok {
-		h.OldGotError(err)
+		h.set_state(false)
 		return
 	}
 	for {

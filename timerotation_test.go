@@ -8,13 +8,10 @@ import (
 )
 
 func TestTimeRotationHandler(t *testing.T) {
-	DisableStdout()
 	r, err := NewTimeRotationHandler(path.Join(os.TempDir(), "tr.log"), "060102-15:04:05")
 	if err != nil {
 		t.Fatal(err)
 	}
-	r.SetLevel(INFO)
-	r.Panic(true)
 	AddHandler("rotation", r)
 	Debug("%d, %s", 1, "OK")
 	time.Sleep(1200 * time.Millisecond)
