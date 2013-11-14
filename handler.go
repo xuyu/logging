@@ -39,6 +39,7 @@ type Record struct {
 type BaseHandler struct {
 	Mutex      sync.Mutex
 	State      bool
+	LastError  error
 	Writer     io.Writer
 	Level      LogLevel
 	LRange     *LevelRange
@@ -146,25 +147,26 @@ func (h *BaseHandler) upgrade_buffer() {
 	h.Buffer = buffer
 }
 
-func (h *BaseHandler) set_state(state bool) {
+func (h *BaseHandler) set_state(state bool, err error) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 	h.State = state
+	h.LastError = err
 }
 
-func (h *BaseHandler) get_state() bool {
+func (h *BaseHandler) get_state() (bool, error) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
-	return h.State
+	return h.State, h.LastError
 }
 
 func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	defer func() {
 		if err := recover(); err != nil {
-			h.set_state(false)
+			h.set_state(false, err.(error))
 		}
 	}()
-	if !h.get_state() {
+	if state, _ := h.get_state(); !state {
 		return
 	}
 	if h.Filter != nil && h.Filter(rd) {
@@ -173,7 +175,7 @@ func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	rd.TimeString = rd.Time.Format(h.TimeLayout)
 	buf.Reset()
 	if err := h.Tmpl.Execute(buf, rd); err != nil {
-		h.set_state(false)
+		h.set_state(false, err)
 		return
 	}
 	if h.Before != nil {
@@ -181,7 +183,7 @@ func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	}
 	n, err := io.Copy(h.Writer, buf)
 	if err != nil {
-		h.set_state(false)
+		h.set_state(false, err)
 	}
 	if h.After != nil {
 		h.After(int64(n))
@@ -207,7 +209,7 @@ func (h *BaseHandler) notify() {
 	signal.Notify(c, syscall.SIGHUP)
 	for {
 		<-c
-		h.set_state(true)
+		h.set_state(true, nil)
 	}
 
 }

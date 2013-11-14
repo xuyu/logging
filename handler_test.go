@@ -139,20 +139,20 @@ func TestPanicError(t *testing.T) {
 	})
 	Error("%d, %s", 1, "OK")
 	time.Sleep(100 * time.Millisecond)
-	if h.get_state() {
+	if state, _ := h.get_state(); state {
 		t.Fail()
 	}
-	h.set_state(true)
+	h.set_state(true, nil)
 	h.SetFilter(nil)
 }
 
 func TestNotify(t *testing.T) {
-	h.set_state(false)
+	h.set_state(false, nil)
 	p, _ := os.FindProcess(os.Getpid())
 	p.Signal(syscall.SIGHUP)
 	time.Sleep(100 * time.Millisecond)
-	if !h.get_state() {
+	if state, _ := h.get_state(); !state {
 		t.Fail()
 	}
-	h.set_state(true)
+	h.set_state(true, nil)
 }

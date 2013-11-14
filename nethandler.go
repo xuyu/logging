@@ -6,15 +6,14 @@ import (
 )
 
 const (
-	DefaultReconnectDuration = 10
+	DefaultReconnectDuration = 3
 )
 
 type NetHandler struct {
 	*BaseHandler
-	Network     string
-	Address     string
-	OldGotError func(error)
-	Timeout     time.Duration
+	Network string
+	Address string
+	Timeout time.Duration
 }
 
 func NewNetHandler(network, address string, timeout time.Duration) (*NetHandler, error) {
@@ -32,6 +31,7 @@ func NewNetHandler(network, address string, timeout time.Duration) (*NetHandler,
 		return nil, err
 	}
 	h.BaseHandler = bh
+	go h.check_state()
 	return h, nil
 }
 
@@ -39,17 +39,21 @@ func (h *NetHandler) DialTimeout() (net.Conn, error) {
 	return net.DialTimeout(h.Network, h.Address, h.Timeout)
 }
 
-func (h *NetHandler) GotNetError(err error) {
-	if _, ok := err.(net.Error); !ok {
-		h.set_state(false)
-		return
-	}
+func (h *NetHandler) check_state() {
 	for {
-		conn, err := h.DialTimeout()
-		if err == nil {
-			h.Writer = conn
-			break
-		}
 		time.Sleep(DefaultReconnectDuration * time.Second)
+		state, err := h.get_state()
+		if state {
+			continue
+		}
+		_, ok := err.(net.Error)
+		if !ok {
+			continue
+		}
+		conn, er := h.DialTimeout()
+		if er == nil {
+			h.Writer = conn
+			h.set_state(true, nil)
+		}
 	}
 }

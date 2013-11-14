@@ -65,7 +65,7 @@ func (h *TimeRotationHandler) Rotate(io.ReadWriter) {
 		h.Writer.(io.Closer).Close()
 		file, err := h.OpenFile(filepath, linkpath)
 		if err != nil {
-			h.set_state(false)
+			h.set_state(false, err)
 			return
 		}
 		h.Writer = file
