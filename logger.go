@@ -34,6 +34,10 @@ func AddHandler(name string, h Handler) {
 	DefaultLogger.AddHandler(name, h)
 }
 
+func Log(level LogLevel, format string, values ...interface{}) {
+	DefaultLogger.Log(level, format, values...)
+}
+
 func Debug(format string, values ...interface{}) {
 	DefaultLogger.Log(DEBUG, format, values...)
 }
