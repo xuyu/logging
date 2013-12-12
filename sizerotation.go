@@ -125,11 +125,11 @@ func (h *SizeRotationHandler) ReleaseFiles() (string, error) {
 	return release, nil
 }
 
-func (h *SizeRotationHandler) AfterWrite(n int64) {
+func (h *SizeRotationHandler) AfterWrite(rd *Record, n int64) {
 	h.CurFileSize += uint64(n)
 }
 
-func (h *SizeRotationHandler) Rotate(io.ReadWriter) {
+func (h *SizeRotationHandler) Rotate(*Record, io.ReadWriter) {
 	if h.CurFileSize < h.MaxFileSize {
 		return
 	}

@@ -48,8 +48,8 @@ type BaseHandler struct {
 	Buffer     chan *Record
 	BufSize    int
 	Filter     func(*Record) bool
-	Before     func(io.ReadWriter)
-	After      func(int64)
+	Before     func(*Record, io.ReadWriter)
+	After      func(*Record, int64)
 }
 
 func NewBaseHandler(out io.Writer, level LogLevel, layout, format string) (*BaseHandler, error) {
@@ -179,14 +179,14 @@ func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 		return
 	}
 	if h.Before != nil {
-		h.Before(buf)
+		h.Before(rd, buf)
 	}
 	n, err := io.Copy(h.Writer, buf)
 	if err != nil {
 		h.set_state(false, err)
 	}
 	if h.After != nil {
-		h.After(int64(n))
+		h.After(rd, int64(n))
 	}
 }
 

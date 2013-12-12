@@ -56,7 +56,7 @@ func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 	return file, nil
 }
 
-func (h *TimeRotationHandler) Rotate(io.ReadWriter) {
+func (h *TimeRotationHandler) Rotate(*Record, io.ReadWriter) {
 	oldfilepath := h.LocalData["oldfilepath"]
 	linkpath := h.LocalData["linkpath"]
 	suffix := h.LocalData["suffix"]
