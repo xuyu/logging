@@ -7,7 +7,7 @@ import (
 )
 
 func resetColorful() {
-	os.Stdout.WriteString("x1b[0m")
+	os.Stdout.WriteString("\x1b[0m")
 }
 
 func changeColor(c color) {
