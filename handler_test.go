@@ -135,7 +135,6 @@ func TestPanicError(t *testing.T) {
 	h.SetLevel(DEBUG)
 	h.SetFilter(func(*Record) bool {
 		panic(errors.New("nothing"))
-		return true
 	})
 	Error("%d, %s", 1, "OK")
 	time.Sleep(100 * time.Millisecond)
