@@ -1,7 +1,7 @@
 logging
 =======
 
-logging library in golang base on log pkg
+logging library in golang base on log pkg, support log level and multi handler, colorful stdout
 
 
 features
