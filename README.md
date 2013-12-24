@@ -19,6 +19,8 @@ features
 
 * support multi handlers
 
+* colorful stdout logging(red errors, yellow warnings, green infos)
+
 
 example
 -------
@@ -77,4 +79,18 @@ if err != nil {
 l.SetLevel(INFO)
 logging.AddHandler("sr", l)
 ...
+```
+
+stdout colorful output
+
+enable:(default)
+
+```go
+logging.EnableColorful()
+```
+
+disable:
+
+```go
+logging.DisableColorful()
 ```
