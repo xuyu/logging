@@ -2,13 +2,17 @@ package logging
 
 import (
 	"os"
-	"path"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
 
 func TestTimeRotationHandler(t *testing.T) {
-	r, err := NewTimeRotationHandler(path.Join(os.TempDir(), "tr.log"), "060102-15:04:05")
+	if runtime.GOOS == "windows" {
+		return
+	}
+	r, err := NewTimeRotationHandler(filepath.Join(os.TempDir(), "tr.log"), "060102-15:04:05")
 	if err != nil {
 		t.Fatal(err)
 	}

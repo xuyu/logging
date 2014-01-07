@@ -2,13 +2,13 @@ package logging
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 )
 
 func TestSizeRotationHandler(t *testing.T) {
-	h, err := NewSizeRotationHandler(path.Join(os.TempDir(), "sr.log"), 64, 3)
+	h, err := NewSizeRotationHandler(filepath.Join(os.TempDir(), "sr.log"), 64, 3)
 	if err != nil {
 		t.Fatal(err)
 	}

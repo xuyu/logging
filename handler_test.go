@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"os"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -146,6 +147,9 @@ func TestPanicError(t *testing.T) {
 }
 
 func TestNotify(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	h.set_state(false, nil)
 	p, _ := os.FindProcess(os.Getpid())
 	p.Signal(syscall.SIGHUP)

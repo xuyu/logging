@@ -2,12 +2,12 @@ package logging
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 )
 
 func TestSingleFileHandler(t *testing.T) {
-	f, err := NewSingleFileHandler(path.Join(os.TempDir(), "sf.log"))
+	f, err := NewSingleFileHandler(filepath.Join(os.TempDir(), "sf.log"))
 	if err != nil {
 		t.Fatal(err)
 	}
