@@ -2,11 +2,7 @@ package logging
 
 import (
 	"bytes"
-	"errors"
-	"os"
-	"runtime"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 )
@@ -22,22 +18,6 @@ func init() {
 		panic(err)
 	}
 	DisableStdout()
-}
-
-func TestSetBufSize(t *testing.T) {
-	b.Reset()
-	AddHandler("b", h)
-	h.SetLevel(DEBUG)
-	Debug("%d, %s", 1, "OK")
-	h.SetBufSize(128)
-	if h.BufSize != 128 {
-		t.Fail()
-	}
-	Debug("%d, %s", 2, "OK")
-	time.Sleep(100 * time.Millisecond)
-	if b.Len() != 68 {
-		t.Fail()
-	}
 }
 
 func TestSetLevel(t *testing.T) {
@@ -128,34 +108,4 @@ func TestSetFilter(t *testing.T) {
 		t.Fail()
 	}
 	h.SetFilter(nil)
-}
-
-func TestPanicError(t *testing.T) {
-	b.Reset()
-	AddHandler("b", h)
-	h.SetLevel(DEBUG)
-	h.SetFilter(func(*Record) bool {
-		panic(errors.New("nothing"))
-	})
-	Error("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
-	if state, _ := h.get_state(); state {
-		t.Fail()
-	}
-	h.set_state(true, nil)
-	h.SetFilter(nil)
-}
-
-func TestNotify(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		return
-	}
-	h.set_state(false, nil)
-	p, _ := os.FindProcess(os.Getpid())
-	p.Signal(syscall.SIGHUP)
-	time.Sleep(100 * time.Millisecond)
-	if state, _ := h.get_state(); !state {
-		t.Fail()
-	}
-	h.set_state(true, nil)
 }
