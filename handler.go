@@ -108,6 +108,9 @@ func (h *BaseHandler) Emit(rd Record) {
 }
 
 func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
+	if h.Writer == nil {
+		return
+	}
 	if h.Filter != nil && h.Filter(rd) {
 		return
 	}
@@ -121,6 +124,7 @@ func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	}
 	n, err := io.Copy(h.Writer, buf)
 	if err != nil {
+		return
 	}
 	if h.After != nil {
 		h.After(rd, int64(n))

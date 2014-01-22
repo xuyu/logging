@@ -137,16 +137,13 @@ func (h *SizeRotationHandler) Rotate(*Record, io.ReadWriter) {
 	h.Writer.(io.Closer).Close()
 	name, err := h.ReleaseFiles()
 	if err != nil {
-		//TODO
 		return
 	}
 	if err := os.Rename(h.FileName, name); err != nil {
-		//TODO
 		return
 	}
 	fp, err := h.OpenCreateFile(h.FileName)
 	if err != nil {
-		//TODO
 		return
 	}
 	h.Writer = fp
