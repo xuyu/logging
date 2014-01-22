@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-var h *BaseHandler
+var h *Handler
 var b *bytes.Buffer
 
 func init() {
 	b = bytes.NewBuffer(nil)
 	var err error
-	h, err = NewBaseHandler(b, DEBUG, DefaultTimeLayout, DefaultFormat)
+	h, err = NewHandler(b, DEBUG, DefaultTimeLayout, DefaultFormat)
 	if err != nil {
 		panic(err)
 	}

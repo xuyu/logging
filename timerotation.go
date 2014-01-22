@@ -8,7 +8,7 @@ import (
 )
 
 type TimeRotationHandler struct {
-	*BaseHandler
+	*Handler
 	LocalData map[string]string
 }
 
@@ -19,11 +19,11 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 	if err != nil {
 		return nil, err
 	}
-	bh, err := NewBaseHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
 	if err != nil {
 		return nil, err
 	}
-	h.BaseHandler = bh
+	h.Handler = bh
 	h.Before = h.Rotate
 	h.LocalData = make(map[string]string)
 	h.LocalData["oldfilepath"] = fullfile

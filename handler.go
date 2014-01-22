@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"text/template"
-	"time"
 )
 
 const (
@@ -22,25 +21,7 @@ var (
 	DefaultBufSize = 1024
 )
 
-type Handler interface {
-	SetLevel(LogLevel)
-	SetLevelString(string)
-	SetLevelRange(LogLevel, LogLevel)
-	SetLevelRangeString(string, string)
-	SetTimeLayout(string)
-	SetFormat(string) error
-	SetFilter(func(*Record) bool)
-	Emit(Record)
-}
-
-type Record struct {
-	Time       time.Time
-	TimeString string
-	Level      LogLevel
-	Message    string
-}
-
-type BaseHandler struct {
+type Handler struct {
 	Writer     io.Writer
 	Level      LogLevel
 	LRange     *LevelRange
@@ -52,8 +33,8 @@ type BaseHandler struct {
 	After      func(*Record, int64)
 }
 
-func NewBaseHandler(out io.Writer, level LogLevel, layout, format string) (*BaseHandler, error) {
-	h := &BaseHandler{
+func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler, error) {
+	h := &Handler{
 		Writer:     out,
 		Level:      level,
 		TimeLayout: layout,
@@ -66,27 +47,27 @@ func NewBaseHandler(out io.Writer, level LogLevel, layout, format string) (*Base
 	return h, nil
 }
 
-func (h *BaseHandler) SetLevel(level LogLevel) {
+func (h *Handler) SetLevel(level LogLevel) {
 	h.Level = level
 }
 
-func (h *BaseHandler) SetLevelString(s string) {
+func (h *Handler) SetLevelString(s string) {
 	h.SetLevel(StringToLogLevel(s))
 }
 
-func (h *BaseHandler) SetLevelRange(min_level, max_level LogLevel) {
+func (h *Handler) SetLevelRange(min_level, max_level LogLevel) {
 	h.LRange = &LevelRange{min_level, max_level}
 }
 
-func (h *BaseHandler) SetLevelRangeString(smin, smax string) {
+func (h *Handler) SetLevelRangeString(smin, smax string) {
 	h.SetLevelRange(StringToLogLevel(smin), StringToLogLevel(smax))
 }
 
-func (h *BaseHandler) SetTimeLayout(layout string) {
+func (h *Handler) SetTimeLayout(layout string) {
 	h.TimeLayout = layout
 }
 
-func (h *BaseHandler) SetFormat(format string) error {
+func (h *Handler) SetFormat(format string) error {
 	tmpl, err := template.New("tmpl").Parse(format)
 	if err != nil {
 		return err
@@ -95,11 +76,11 @@ func (h *BaseHandler) SetFormat(format string) error {
 	return nil
 }
 
-func (h *BaseHandler) SetFilter(f func(*Record) bool) {
+func (h *Handler) SetFilter(f func(*Record) bool) {
 	h.Filter = f
 }
 
-func (h *BaseHandler) Emit(rd Record) {
+func (h *Handler) Emit(rd Record) {
 	if h.LRange != nil {
 		if !h.LRange.Contain(rd.Level) {
 			return
@@ -110,7 +91,7 @@ func (h *BaseHandler) Emit(rd Record) {
 	h.Buffer <- &rd
 }
 
-func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
+func (h *Handler) handle_record(rd *Record, buf *bytes.Buffer) {
 	if h.Writer == nil {
 		return
 	}
@@ -134,7 +115,7 @@ func (h *BaseHandler) handle_record(rd *Record, buf *bytes.Buffer) {
 	}
 }
 
-func (h *BaseHandler) WriteRecord() {
+func (h *Handler) WriteRecord() {
 	rd := &Record{}
 	buf := bytes.NewBuffer(nil)
 	for {

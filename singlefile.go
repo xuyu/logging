@@ -5,7 +5,7 @@ import (
 )
 
 type SingleFileHandler struct {
-	*BaseHandler
+	*Handler
 }
 
 func NewSingleFileHandler(file string) (*SingleFileHandler, error) {
@@ -13,7 +13,7 @@ func NewSingleFileHandler(file string) (*SingleFileHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	bh, err := NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
 	if err != nil {
 		return nil, err
 	}

@@ -59,7 +59,7 @@ func (f *FileNameInfoSlice) RenameIndex(prefix string) {
 }
 
 type SizeRotationHandler struct {
-	*BaseHandler
+	*Handler
 	FileName    string
 	CurFileSize uint64
 	MaxFileSize uint64
@@ -77,11 +77,11 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 		fp.Close()
 		return nil, err
 	}
-	bh, err := NewBaseHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
+	bh, err := NewHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
 	if err != nil {
 		return nil, err
 	}
-	h.BaseHandler = bh
+	h.Handler = bh
 	h.Before = h.Rotate
 	h.After = h.AfterWrite
 	return h, nil

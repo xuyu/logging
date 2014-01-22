@@ -10,15 +10,15 @@ const (
 )
 
 var (
-	StdoutHandler Handler
+	StdoutHandler *Handler
 )
 
 func init() {
-	bh, err := NewBaseHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
+	h, err := NewHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
 	if err != nil {
 		panic(err)
 	}
-	StdoutHandler = bh
+	StdoutHandler = h
 	EnableStdout()
 	EnableColorful()
 }
@@ -32,16 +32,16 @@ func EnableStdout() {
 }
 
 func EnableColorful() {
-	StdoutHandler.(*BaseHandler).Before = func(rd *Record, buf io.ReadWriter) {
+	StdoutHandler.Before = func(rd *Record, buf io.ReadWriter) {
 		colorful(rd.Level)
 	}
-	StdoutHandler.(*BaseHandler).After = func(*Record, int64) {
+	StdoutHandler.After = func(*Record, int64) {
 		resetColorful()
 	}
 }
 
 func DisableColorful() {
 	resetColorful()
-	StdoutHandler.(*BaseHandler).Before = nil
-	StdoutHandler.(*BaseHandler).After = nil
+	StdoutHandler.Before = nil
+	StdoutHandler.After = nil
 }

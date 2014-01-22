@@ -12,17 +12,28 @@ func init() {
 	}
 }
 
+type Record struct {
+	Time       time.Time
+	TimeString string
+	Level      LogLevel
+	Message    string
+}
+
+type Emitter interface {
+	Emit(Record)
+}
+
 type Logger struct {
-	Handlers map[string]Handler
+	Handlers map[string]Emitter
 }
 
 func NewLogger() *Logger {
-	return &Logger{Handlers: make(map[string]Handler)}
+	return &Logger{Handlers: make(map[string]Emitter)}
 }
 
 var DefaultLogger *Logger = NewLogger()
 
-func (l *Logger) AddHandler(name string, h Handler) {
+func (l *Logger) AddHandler(name string, h Emitter) {
 	l.Handlers[name] = h
 }
 
@@ -37,7 +48,7 @@ func (l *Logger) Log(level LogLevel, format string, values ...interface{}) {
 	}
 }
 
-func AddHandler(name string, h Handler) {
+func AddHandler(name string, h Emitter) {
 	DefaultLogger.AddHandler(name, h)
 }
 
