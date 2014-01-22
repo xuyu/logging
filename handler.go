@@ -13,11 +13,11 @@ const (
 	FormatNoTime      = "{{.Level}} {{.Message}}\n"
 	FormatNoLevel     = "[{{.TimeString}}] {{.Message}}\n"
 	FormatOnlyMessage = "{{.Message}}\n"
-	FileCreateFlag    = os.O_CREATE | os.O_APPEND | os.O_WRONLY
-	FileCreatePerm    = 0640
 )
 
 var (
+	FileCreateFlag = os.O_CREATE | os.O_APPEND | os.O_WRONLY
+	FileCreatePerm = 0640
 	DefaultBufSize = 1024
 )
 
