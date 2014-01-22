@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"io"
+	"os"
 	"text/template"
 	"time"
 )
@@ -13,6 +14,8 @@ const (
 	FormatNoTime      = "{{.Level}} {{.Message}}\n"
 	FormatNoLevel     = "[{{.TimeString}}] {{.Message}}\n"
 	FormatOnlyMessage = "{{.Message}}\n"
+	FileCreateFlag    = os.O_CREATE | os.O_APPEND | os.O_WRONLY
+	FileCreatePerm    = 0640
 )
 
 var (

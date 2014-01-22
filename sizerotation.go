@@ -88,7 +88,7 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 }
 
 func (h *SizeRotationHandler) OpenCreateFile(fn string) (*os.File, error) {
-	return os.OpenFile(fn, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)
+	return os.OpenFile(fn, FileCreateFlag, FileCreatePerm)
 }
 
 func (h *SizeRotationHandler) FileSize() (uint64, error) {

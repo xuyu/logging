@@ -9,7 +9,7 @@ type SingleFileHandler struct {
 }
 
 func NewSingleFileHandler(file string) (*SingleFileHandler, error) {
-	fp, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)
+	fp, err := os.OpenFile(file, FileCreateFlag, FileCreatePerm)
 	if err != nil {
 		return nil, err
 	}

@@ -49,7 +49,7 @@ func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 	} else {
 		fn = linkpath
 	}
-	file, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY, 0640)
+	file, err := os.OpenFile(fn, FileCreateFlag, FileCreatePerm)
 	if err != nil {
 		return nil, err
 	}
