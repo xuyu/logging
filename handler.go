@@ -16,9 +16,9 @@ const (
 )
 
 var (
-	FileCreateFlag = os.O_CREATE | os.O_APPEND | os.O_WRONLY
-	FileCreatePerm = 0640
-	DefaultBufSize = 1024
+	FileCreateFlag             = os.O_CREATE | os.O_APPEND | os.O_WRONLY
+	FileCreatePerm os.FileMode = 0640
+	DefaultBufSize             = 1024
 )
 
 type Handler struct {
