@@ -18,11 +18,11 @@ func init() {
 		panic(err)
 	}
 	DisableStdout()
+	AddHandler("b", h)
 }
 
 func TestSetLevel(t *testing.T) {
 	b.Reset()
-	AddHandler("b", h)
 	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	h.SetLevel(INFO)
@@ -35,7 +35,6 @@ func TestSetLevel(t *testing.T) {
 
 func TestSetLevelString(t *testing.T) {
 	b.Reset()
-	AddHandler("b", h)
 	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	h.SetLevelString("info")
@@ -48,7 +47,6 @@ func TestSetLevelString(t *testing.T) {
 
 func TestSetLevelRange(t *testing.T) {
 	b.Reset()
-	AddHandler("b", h)
 	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
@@ -66,7 +64,6 @@ func TestSetLevelRange(t *testing.T) {
 
 func TestSetLevelRangeString(t *testing.T) {
 	b.Reset()
-	AddHandler("b", h)
 	h.SetLevel(DEBUG)
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
@@ -84,7 +81,6 @@ func TestSetLevelRangeString(t *testing.T) {
 
 func TestSetTimeLayout(t *testing.T) {
 	b.Reset()
-	AddHandler("b", h)
 	h.SetLevel(DEBUG)
 	h.SetTimeLayout("2006/01/02-15:04:05")
 	Error("%d, %s", 1, "OK")
@@ -97,7 +93,6 @@ func TestSetTimeLayout(t *testing.T) {
 
 func TestSetFilter(t *testing.T) {
 	b.Reset()
-	AddHandler("b", h)
 	h.SetLevel(DEBUG)
 	h.SetFilter(func(rd *Record) bool {
 		return strings.Contains(rd.Message, "OK")
