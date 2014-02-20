@@ -19,7 +19,7 @@ func init() {
 		panic(err)
 	}
 	StdoutHandler = h
-	StdoutHandler.Async = true
+	StdoutHandler.Async = false
 	EnableStdout()
 	EnableColorful()
 }
