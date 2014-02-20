@@ -22,6 +22,7 @@ var (
 )
 
 type Handler struct {
+	Async      bool
 	Writer     io.Writer
 	Level      LogLevel
 	LRange     *LevelRange
@@ -35,6 +36,7 @@ type Handler struct {
 
 func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler, error) {
 	h := &Handler{
+		Async:      true,
 		Writer:     out,
 		Level:      level,
 		TimeLayout: layout,
@@ -88,7 +90,12 @@ func (h *Handler) Emit(rd Record) {
 	} else if h.Level > rd.Level {
 		return
 	}
-	h.Buffer <- &rd
+	if h.Async {
+		h.Buffer <- &rd
+	} else {
+		h.handle_record(&rd, bytes.NewBuffer(nil))
+	}
+
 }
 
 func (h *Handler) handle_record(rd *Record, buf *bytes.Buffer) {

@@ -104,3 +104,13 @@ func TestSetFilter(t *testing.T) {
 	}
 	h.SetFilter(nil)
 }
+
+func TestAsyncHandler(t *testing.T) {
+	b.Reset()
+	h.Async = false
+	h.SetLevel(DEBUG)
+	Error("%d, %s", 1, "OK")
+	if b.Len() != 34 {
+		t.Fail()
+	}
+}
