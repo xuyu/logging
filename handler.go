@@ -57,8 +57,8 @@ func (h *Handler) SetLevelString(s string) {
 	h.SetLevel(StringToLogLevel(s))
 }
 
-func (h *Handler) SetLevelRange(min_level, max_level LogLevel) {
-	h.LRange = &LevelRange{min_level, max_level}
+func (h *Handler) SetLevelRange(minLevel, maxLevel LogLevel) {
+	h.LRange = &LevelRange{minLevel, maxLevel}
 }
 
 func (h *Handler) SetLevelRangeString(smin, smax string) {
@@ -93,12 +93,12 @@ func (h *Handler) Emit(rd Record) {
 	if h.Async {
 		h.Buffer <- &rd
 	} else {
-		h.handle_record(&rd, bytes.NewBuffer(nil))
+		h.handleRecord(&rd, bytes.NewBuffer(nil))
 	}
 
 }
 
-func (h *Handler) handle_record(rd *Record, buf *bytes.Buffer) {
+func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
 	if h.Writer == nil {
 		return
 	}
@@ -128,7 +128,7 @@ func (h *Handler) WriteRecord() {
 	for {
 		rd = <-h.Buffer
 		if rd != nil {
-			h.handle_record(rd, buf)
+			h.handleRecord(rd, buf)
 		}
 	}
 }

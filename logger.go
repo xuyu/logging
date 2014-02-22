@@ -31,7 +31,7 @@ func NewLogger() *Logger {
 	return &Logger{Handlers: make(map[string]Emitter)}
 }
 
-var DefaultLogger *Logger = NewLogger()
+var DefaultLogger = NewLogger()
 
 func (l *Logger) AddHandler(name string, h Emitter) {
 	l.Handlers[name] = h
