@@ -119,3 +119,16 @@ func TestPaddingLevel(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestLoggerHandlerName(t *testing.T) {
+	b.Reset()
+	DefaultLogger.Name = "DefaultLogger"
+	if err := h.SetFormat("[{{.TimeString}}] {{printf \"%s.%s\" .LoggerName .HandlerName | printf \"%-20s\"}} {{.Level}} {{.Message}}\n"); err != nil {
+		t.Error(err.Error())
+	}
+	Error("%d, %s", 1, "OK")
+	if b.Len() != 55 {
+		t.Fail()
+	}
+	h.SetFormat(DefaultFormat)
+}

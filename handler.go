@@ -100,7 +100,6 @@ func (h *Handler) Emit(rd Record) {
 	} else {
 		h.handleRecord(&rd, bytes.NewBuffer(nil))
 	}
-
 }
 
 func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {

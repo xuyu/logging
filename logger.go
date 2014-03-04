@@ -6,10 +6,12 @@ import (
 )
 
 type Record struct {
-	Time       time.Time
-	TimeString string
-	Level      LogLevel
-	Message    string
+	Time        time.Time
+	TimeString  string
+	Level       LogLevel
+	Message     string
+	LoggerName  string
+	HandlerName string
 }
 
 type Emitter interface {
@@ -17,6 +19,7 @@ type Emitter interface {
 }
 
 type Logger struct {
+	Name     string
 	Handlers map[string]Emitter
 }
 
@@ -32,11 +35,13 @@ func (l *Logger) AddHandler(name string, h Emitter) {
 
 func (l *Logger) Log(level LogLevel, format string, values ...interface{}) {
 	rd := Record{
-		Time:    time.Now(),
-		Level:   level,
-		Message: fmt.Sprintf(format, values...),
+		Time:       time.Now(),
+		Level:      level,
+		Message:    fmt.Sprintf(format, values...),
+		LoggerName: l.Name,
 	}
-	for _, h := range l.Handlers {
+	for name, h := range l.Handlers {
+		rd.HandlerName = name
 		h.Emit(rd)
 	}
 }
