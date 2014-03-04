@@ -11,6 +11,7 @@ func TestSingleFileHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	f.Async = false
 	AddHandler("file", f)
 	Debug("%d, %s", 1, "OK")
 }

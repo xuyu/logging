@@ -2,15 +2,8 @@ package logging
 
 import (
 	"fmt"
-	"runtime"
 	"time"
 )
-
-func init() {
-	if runtime.GOMAXPROCS(0) <= 1 {
-		runtime.GOMAXPROCS(2)
-	}
-}
 
 type Record struct {
 	Time       time.Time

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"strings"
 	"testing"
-	"time"
 )
 
 var h *Handler
@@ -17,6 +16,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	h.Async = false
 	DisableStdout()
 	AddHandler("b", h)
 }
@@ -27,7 +27,6 @@ func TestSetLevel(t *testing.T) {
 	Debug("%d, %s", 1, "OK")
 	h.SetLevel(INFO)
 	Debug("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 34 {
 		t.Fail()
 	}
@@ -39,7 +38,6 @@ func TestSetLevelString(t *testing.T) {
 	Debug("%d, %s", 1, "OK")
 	h.SetLevelString("info")
 	Debug("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 34 {
 		t.Fail()
 	}
@@ -55,7 +53,6 @@ func TestSetLevelRange(t *testing.T) {
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
 	Error("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 34*4-2 {
 		t.Fail()
 	}
@@ -72,7 +69,6 @@ func TestSetLevelRangeString(t *testing.T) {
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
 	Error("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 34*4-2 {
 		t.Fail()
 	}
@@ -84,7 +80,6 @@ func TestSetTimeLayout(t *testing.T) {
 	h.SetLevel(DEBUG)
 	h.SetTimeLayout("2006/01/02-15:04:05")
 	Error("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 34 {
 		t.Fail()
 	}
@@ -98,7 +93,6 @@ func TestSetFilter(t *testing.T) {
 		return strings.Contains(rd.Message, "OK")
 	})
 	Error("%d, %s", 1, "OK")
-	time.Sleep(100 * time.Millisecond)
 	if b.Len() != 0 {
 		t.Fail()
 	}
@@ -117,7 +111,6 @@ func TestAsyncHandler(t *testing.T) {
 
 func TestPaddingLevel(t *testing.T) {
 	b.Reset()
-	h.Async = false
 	if err := h.SetPaddingLevel(); err != nil {
 		t.Error(err.Error())
 	}

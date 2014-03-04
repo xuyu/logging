@@ -16,6 +16,7 @@ func TestTimeRotationHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	r.Async = false
 	AddHandler("rotation", r)
 	Debug("%d, %s", 1, "OK")
 	time.Sleep(1200 * time.Millisecond)
