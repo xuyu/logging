@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	DefaultTimeLayout = "2006-01-02 15:04:05"
-	DefaultFormat     = "[{{.TimeString}}] {{.Level}} {{.Message}}\n"
-	FormatNoTime      = "{{.Level}} {{.Message}}\n"
-	FormatNoLevel     = "[{{.TimeString}}] {{.Message}}\n"
-	FormatOnlyMessage = "{{.Message}}\n"
+	DefaultTimeLayout  = "2006-01-02 15:04:05"
+	DefaultFormat      = "[{{.TimeString}}] {{.Level}} {{.Message}}\n"
+	FormatNoTime       = "{{.Level}} {{.Message}}\n"
+	FormatNoLevel      = "[{{.TimeString}}] {{.Message}}\n"
+	FormatOnlyMessage  = "{{.Message}}\n"
+	FormatPaddingLevel = "[{{.TimeString}}] {{printf \"%-7s\" .Level.String}} {{.Message}}\n"
 )
 
 var (
@@ -76,6 +77,10 @@ func (h *Handler) SetFormat(format string) error {
 	}
 	h.Tmpl = tmpl
 	return nil
+}
+
+func (h *Handler) SetPaddingLevel() error {
+	return h.SetFormat(FormatPaddingLevel)
 }
 
 func (h *Handler) SetFilter(f func(*Record) bool) {

@@ -114,3 +114,15 @@ func TestAsyncHandler(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestPaddingLevel(t *testing.T) {
+	b.Reset()
+	h.Async = false
+	if err := h.SetPaddingLevel(); err != nil {
+		t.Error(err.Error())
+	}
+	Error("%d, %s", 1, "OK")
+	if b.Len() != 36 {
+		t.Fail()
+	}
+}
