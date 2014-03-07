@@ -109,17 +109,6 @@ func TestAsyncHandler(t *testing.T) {
 	}
 }
 
-func TestPaddingLevel(t *testing.T) {
-	b.Reset()
-	if err := h.SetPaddingLevel(); err != nil {
-		t.Error(err.Error())
-	}
-	Error("%d, %s", 1, "OK")
-	if b.Len() != 36 {
-		t.Fail()
-	}
-}
-
 func TestLoggerHandlerName(t *testing.T) {
 	b.Reset()
 	DefaultLogger.Name = "DefaultLogger"

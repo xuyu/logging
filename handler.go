@@ -75,10 +75,6 @@ func (h *Handler) SetFormat(format string) error {
 	return nil
 }
 
-func (h *Handler) SetPaddingLevel() error {
-	return h.SetFormat(FormatPaddingLevel)
-}
-
 func (h *Handler) SetFilter(f func(*Record) bool) {
 	h.Filter = f
 }
