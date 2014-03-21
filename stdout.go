@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	StdoutHandlerName = "stdout"
+	stdoutHandlerName = "stdout"
 )
 
 var (
@@ -24,11 +24,11 @@ func init() {
 }
 
 func DisableStdout() {
-	delete(DefaultLogger.Handlers, StdoutHandlerName)
+	delete(DefaultLogger.Handlers, stdoutHandlerName)
 }
 
 func EnableStdout() {
-	DefaultLogger.Handlers[StdoutHandlerName] = StdoutHandler
+	DefaultLogger.Handlers[stdoutHandlerName] = StdoutHandler
 }
 
 func EnableColorful() {
