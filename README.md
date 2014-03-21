@@ -1,4 +1,5 @@
 logging
+[![GoDoc](https://godoc.org/github.com/xuyu/logging?status.png)](https://godoc.org/github.com/xuyu/logging)
 =======
 
 logging for golang, support log level and multi handler, colorful stdout
