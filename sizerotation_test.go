@@ -11,7 +11,6 @@ func TestSizeRotationHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h.Async = false
 	AddHandler("sr", h)
 	Debug("%d, %s", 1, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	Info("%d, %s", 2, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")

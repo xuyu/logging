@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"sync"
 	"text/template"
 )
 
@@ -15,17 +16,16 @@ const (
 var (
 	FileCreateFlag             = os.O_CREATE | os.O_APPEND | os.O_WRONLY
 	FileCreatePerm os.FileMode = 0640
-	DefaultBufSize             = 1024
 )
 
 type Handler struct {
-	Async      bool
+	mutex      sync.Mutex
+	buffer     *bytes.Buffer
 	Writer     io.Writer
 	Level      LogLevel
 	LRange     *LevelRange
 	TimeLayout string
 	Tmpl       *template.Template
-	Buffer     chan *Record
 	Filter     func(*Record) bool
 	Before     func(*Record, io.ReadWriter)
 	After      func(*Record, int64)
@@ -33,7 +33,7 @@ type Handler struct {
 
 func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler, error) {
 	h := &Handler{
-		Async:      true,
+		buffer:     bytes.NewBuffer(nil),
 		Writer:     out,
 		Level:      level,
 		TimeLayout: layout,
@@ -41,8 +41,6 @@ func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler,
 	if err := h.SetFormat(format); err != nil {
 		return nil, err
 	}
-	h.Buffer = make(chan *Record, DefaultBufSize)
-	go h.WriteRecord()
 	return h, nil
 }
 
@@ -87,11 +85,10 @@ func (h *Handler) Emit(rd Record) {
 	} else if h.Level > rd.Level {
 		return
 	}
-	if h.Async {
-		h.Buffer <- &rd
-	} else {
-		h.handleRecord(&rd, bytes.NewBuffer(nil))
-	}
+	h.mutex.Lock()
+	h.buffer.Reset()
+	h.handleRecord(&rd, h.buffer)
+	h.mutex.Unlock()
 }
 
 func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
@@ -102,7 +99,6 @@ func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
 		return
 	}
 	rd.TimeString = rd.Time.Format(h.TimeLayout)
-	buf.Reset()
 	if err := h.Tmpl.Execute(buf, rd); err != nil {
 		return
 	}
@@ -115,16 +111,5 @@ func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
 	}
 	if h.After != nil {
 		h.After(rd, int64(n))
-	}
-}
-
-func (h *Handler) WriteRecord() {
-	rd := &Record{}
-	buf := bytes.NewBuffer(nil)
-	for {
-		rd = <-h.Buffer
-		if rd != nil {
-			h.handleRecord(rd, buf)
-		}
 	}
 }

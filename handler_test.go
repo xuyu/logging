@@ -16,7 +16,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	h.Async = false
 	DisableStdout()
 	AddHandler("b", h)
 }
@@ -101,7 +100,6 @@ func TestSetFilter(t *testing.T) {
 
 func TestAsyncHandler(t *testing.T) {
 	b.Reset()
-	h.Async = false
 	h.SetLevel(DEBUG)
 	Error("%d, %s", 1, "OK")
 	if b.Len() != 34 {
