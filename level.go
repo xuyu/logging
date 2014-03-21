@@ -4,17 +4,17 @@ import (
 	"strings"
 )
 
-type LogLevel uint8
+type logLevel uint8
 
 const (
-	DEBUG   LogLevel = 1
-	INFO    LogLevel = 2
-	WARNING LogLevel = 3
-	ERROR   LogLevel = 4
-	DISABLE LogLevel = 255
+	DEBUG   logLevel = 1
+	INFO    logLevel = 2
+	WARNING logLevel = 3
+	ERROR   logLevel = 4
+	DISABLE logLevel = 255
 )
 
-func StringToLogLevel(s string) LogLevel {
+func stringToLogLevel(s string) logLevel {
 	switch strings.ToUpper(s) {
 	case "DEBUG":
 		return DEBUG
@@ -29,7 +29,7 @@ func StringToLogLevel(s string) LogLevel {
 	}
 }
 
-func (level *LogLevel) String() string {
+func (level *logLevel) String() string {
 	switch *level {
 	case DEBUG:
 		return "DEBUG"
@@ -44,11 +44,11 @@ func (level *LogLevel) String() string {
 	}
 }
 
-type LevelRange struct {
-	MinLevel LogLevel
-	MaxLevel LogLevel
+type levelRange struct {
+	minLevel logLevel
+	maxLevel logLevel
 }
 
-func (lr *LevelRange) Contain(level LogLevel) bool {
-	return level >= lr.MinLevel && level <= lr.MaxLevel
+func (lr *levelRange) contains(level logLevel) bool {
+	return level >= lr.minLevel && level <= lr.maxLevel
 }

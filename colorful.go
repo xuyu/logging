@@ -8,7 +8,7 @@ const (
 	yellow = color(0x000E)
 )
 
-func colorful(level LogLevel) {
+func colorful(level logLevel) {
 	switch level {
 	case ERROR:
 		changeColor(red)

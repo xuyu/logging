@@ -8,7 +8,7 @@ import (
 type Record struct {
 	Time        time.Time
 	TimeString  string
-	Level       LogLevel
+	Level       logLevel
 	Message     string
 	LoggerName  string
 	HandlerName string
@@ -33,7 +33,7 @@ func (l *Logger) AddHandler(name string, h Emitter) {
 	l.Handlers[name] = h
 }
 
-func (l *Logger) Log(level LogLevel, format string, values ...interface{}) {
+func (l *Logger) Log(level logLevel, format string, values ...interface{}) {
 	rd := Record{
 		Time:       time.Now(),
 		Level:      level,
@@ -50,7 +50,7 @@ func AddHandler(name string, h Emitter) {
 	DefaultLogger.AddHandler(name, h)
 }
 
-func Log(level LogLevel, format string, values ...interface{}) {
+func Log(level logLevel, format string, values ...interface{}) {
 	DefaultLogger.Log(level, format, values...)
 }
 

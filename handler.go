@@ -22,8 +22,8 @@ type Handler struct {
 	mutex      sync.Mutex
 	buffer     *bytes.Buffer
 	writer     io.Writer
-	level      LogLevel
-	lRange     *LevelRange
+	level      logLevel
+	lRange     *levelRange
 	timeLayout string
 	tmpl       *template.Template
 	filter     func(*Record) bool
@@ -32,7 +32,7 @@ type Handler struct {
 	After  func(*Record, int64)
 }
 
-func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler, error) {
+func NewHandler(out io.Writer, level logLevel, layout, format string) (*Handler, error) {
 	h := &Handler{
 		buffer:     bytes.NewBuffer(nil),
 		writer:     out,
@@ -45,20 +45,20 @@ func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler,
 	return h, nil
 }
 
-func (h *Handler) SetLevel(level LogLevel) {
+func (h *Handler) SetLevel(level logLevel) {
 	h.level = level
 }
 
 func (h *Handler) SetLevelString(s string) {
-	h.SetLevel(StringToLogLevel(s))
+	h.SetLevel(stringToLogLevel(s))
 }
 
-func (h *Handler) SetLevelRange(minLevel, maxLevel LogLevel) {
-	h.lRange = &LevelRange{minLevel, maxLevel}
+func (h *Handler) SetLevelRange(minLevel, maxLevel logLevel) {
+	h.lRange = &levelRange{minLevel, maxLevel}
 }
 
 func (h *Handler) SetLevelRangeString(smin, smax string) {
-	h.SetLevelRange(StringToLogLevel(smin), StringToLogLevel(smax))
+	h.SetLevelRange(stringToLogLevel(smin), stringToLogLevel(smax))
 }
 
 func (h *Handler) SetTimeLayout(layout string) {
@@ -80,7 +80,7 @@ func (h *Handler) SetFilter(f func(*Record) bool) {
 
 func (h *Handler) Emit(rd Record) {
 	if h.lRange != nil {
-		if !h.lRange.Contain(rd.Level) {
+		if !h.lRange.contains(rd.Level) {
 			return
 		}
 	} else if h.level > rd.Level {

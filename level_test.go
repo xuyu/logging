@@ -5,12 +5,12 @@ import (
 )
 
 func TestLevelToString(t *testing.T) {
-	data := map[LogLevel]string{
+	data := map[logLevel]string{
 		DEBUG:         "DEBUG",
 		INFO:          "INFO",
 		WARNING:       "WARNING",
 		ERROR:         "ERROR",
-		LogLevel(250): "DISABLE",
+		logLevel(250): "DISABLE",
 	}
 	for level, str := range data {
 		if level.String() != str {
@@ -20,7 +20,7 @@ func TestLevelToString(t *testing.T) {
 }
 
 func TestStringToLevel(t *testing.T) {
-	data := map[string]LogLevel{
+	data := map[string]logLevel{
 		"DEBUG":   DEBUG,
 		"INFO":    INFO,
 		"WARNING": WARNING,
@@ -28,21 +28,21 @@ func TestStringToLevel(t *testing.T) {
 		"":        DISABLE,
 	}
 	for str, level := range data {
-		if StringToLogLevel(str) != level {
+		if stringToLogLevel(str) != level {
 			t.Error(str)
 		}
 	}
 }
 
 func TestLevelRange(t *testing.T) {
-	lr := LevelRange{INFO, WARNING}
-	if lr.Contain(ERROR) {
+	lr := levelRange{INFO, WARNING}
+	if lr.contains(ERROR) {
 		t.Error("TestLevelRange Fail")
 	}
-	if lr.Contain(DEBUG) {
+	if lr.contains(DEBUG) {
 		t.Error("TestLevelRange Fail")
 	}
-	if !lr.Contain(INFO) {
+	if !lr.contains(INFO) {
 		t.Error("TestLevelRange Fail")
 	}
 }
