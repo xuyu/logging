@@ -94,16 +94,3 @@ disable:
 ```go
 logging.DisableColorful()
 ```
-
-sync/async io mode(default async):
-
-```go
-l, err := logging.NewSizeRotationHandler("/tmp/sr.log", 1024, 5)
-if err != nil {
-	panic(err)
-}
-
-// stdout handler default use sync io mode
-// use sync io mode
-l.Async = false
-```
