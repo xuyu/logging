@@ -134,7 +134,7 @@ func (h *SizeRotationHandler) Rotate(*Record, io.ReadWriter) {
 		return
 	}
 	h.CurFileSize = 0
-	h.Writer.(io.Closer).Close()
+	h.writer.(io.Closer).Close()
 	name, err := h.ReleaseFiles()
 	if err != nil {
 		return
@@ -146,5 +146,5 @@ func (h *SizeRotationHandler) Rotate(*Record, io.ReadWriter) {
 	if err != nil {
 		return
 	}
-	h.Writer = fp
+	h.writer = fp
 }

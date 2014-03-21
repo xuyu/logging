@@ -21,22 +21,23 @@ var (
 type Handler struct {
 	mutex      sync.Mutex
 	buffer     *bytes.Buffer
-	Writer     io.Writer
-	Level      LogLevel
-	LRange     *LevelRange
-	TimeLayout string
-	Tmpl       *template.Template
-	Filter     func(*Record) bool
-	Before     func(*Record, io.ReadWriter)
-	After      func(*Record, int64)
+	writer     io.Writer
+	level      LogLevel
+	lRange     *LevelRange
+	timeLayout string
+	tmpl       *template.Template
+	filter     func(*Record) bool
+
+	Before func(*Record, io.ReadWriter)
+	After  func(*Record, int64)
 }
 
 func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler, error) {
 	h := &Handler{
 		buffer:     bytes.NewBuffer(nil),
-		Writer:     out,
-		Level:      level,
-		TimeLayout: layout,
+		writer:     out,
+		level:      level,
+		timeLayout: layout,
 	}
 	if err := h.SetFormat(format); err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func NewHandler(out io.Writer, level LogLevel, layout, format string) (*Handler,
 }
 
 func (h *Handler) SetLevel(level LogLevel) {
-	h.Level = level
+	h.level = level
 }
 
 func (h *Handler) SetLevelString(s string) {
@@ -53,7 +54,7 @@ func (h *Handler) SetLevelString(s string) {
 }
 
 func (h *Handler) SetLevelRange(minLevel, maxLevel LogLevel) {
-	h.LRange = &LevelRange{minLevel, maxLevel}
+	h.lRange = &LevelRange{minLevel, maxLevel}
 }
 
 func (h *Handler) SetLevelRangeString(smin, smax string) {
@@ -61,7 +62,7 @@ func (h *Handler) SetLevelRangeString(smin, smax string) {
 }
 
 func (h *Handler) SetTimeLayout(layout string) {
-	h.TimeLayout = layout
+	h.timeLayout = layout
 }
 
 func (h *Handler) SetFormat(format string) error {
@@ -69,20 +70,20 @@ func (h *Handler) SetFormat(format string) error {
 	if err != nil {
 		return err
 	}
-	h.Tmpl = tmpl
+	h.tmpl = tmpl
 	return nil
 }
 
 func (h *Handler) SetFilter(f func(*Record) bool) {
-	h.Filter = f
+	h.filter = f
 }
 
 func (h *Handler) Emit(rd Record) {
-	if h.LRange != nil {
-		if !h.LRange.Contain(rd.Level) {
+	if h.lRange != nil {
+		if !h.lRange.Contain(rd.Level) {
 			return
 		}
-	} else if h.Level > rd.Level {
+	} else if h.level > rd.Level {
 		return
 	}
 	h.mutex.Lock()
@@ -92,20 +93,20 @@ func (h *Handler) Emit(rd Record) {
 }
 
 func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
-	if h.Writer == nil {
+	if h.writer == nil {
 		return
 	}
-	if h.Filter != nil && h.Filter(rd) {
+	if h.filter != nil && h.filter(rd) {
 		return
 	}
-	rd.TimeString = rd.Time.Format(h.TimeLayout)
-	if err := h.Tmpl.Execute(buf, rd); err != nil {
+	rd.TimeString = rd.Time.Format(h.timeLayout)
+	if err := h.tmpl.Execute(buf, rd); err != nil {
 		return
 	}
 	if h.Before != nil {
 		h.Before(rd, buf)
 	}
-	n, err := io.Copy(h.Writer, buf)
+	n, err := io.Copy(h.writer, buf)
 	if err != nil {
 		return
 	}

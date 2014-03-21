@@ -59,12 +59,12 @@ func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 func (h *TimeRotationHandler) Rotate(*Record, io.ReadWriter) {
 	filepath := h.LocalData["linkpath"] + "." + time.Now().Format(h.LocalData["suffix"])
 	if filepath != h.LocalData["oldfilepath"] {
-		h.Writer.(io.Closer).Close()
+		h.writer.(io.Closer).Close()
 		file, err := h.OpenFile(filepath, h.LocalData["linkpath"])
 		if err != nil {
 			return
 		}
-		h.Writer = file
+		h.writer = file
 		h.LocalData["oldfilepath"] = filepath
 	}
 }

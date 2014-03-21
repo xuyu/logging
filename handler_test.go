@@ -55,7 +55,7 @@ func TestSetLevelRange(t *testing.T) {
 	if b.Len() != 34*4-2 {
 		t.Fail()
 	}
-	h.LRange = nil
+	h.lRange = nil
 }
 
 func TestSetLevelRangeString(t *testing.T) {
@@ -71,7 +71,7 @@ func TestSetLevelRangeString(t *testing.T) {
 	if b.Len() != 34*4-2 {
 		t.Fail()
 	}
-	h.LRange = nil
+	h.lRange = nil
 }
 
 func TestSetTimeLayout(t *testing.T) {
