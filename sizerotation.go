@@ -10,40 +10,36 @@ import (
 	"strings"
 )
 
-type FileNameInfo struct {
-	FileName string
-	FileInfo os.FileInfo
+type fileNameInfo struct {
+	fileName string
+	fileInfo os.FileInfo
 }
 
-type FileNameInfoSlice struct {
-	files []FileNameInfo
+type fileNameInfoSlice struct {
+	files []fileNameInfo
 }
 
-func (f *FileNameInfoSlice) Append(fi FileNameInfo) {
-	f.files = append(f.files, fi)
-}
-
-func (f *FileNameInfoSlice) Len() int {
+func (f *fileNameInfoSlice) Len() int {
 	return len(f.files)
 }
 
-func (f *FileNameInfoSlice) Less(i, j int) bool {
-	return f.files[i].FileInfo.ModTime().Before(f.files[j].FileInfo.ModTime())
+func (f *fileNameInfoSlice) Less(i, j int) bool {
+	return f.files[i].fileInfo.ModTime().Before(f.files[j].fileInfo.ModTime())
 }
 
-func (f *FileNameInfoSlice) Swap(i, j int) {
+func (f *fileNameInfoSlice) Swap(i, j int) {
 	f.files[j], f.files[i] = f.files[i], f.files[j]
 }
 
-func (f *FileNameInfoSlice) Sort() {
+func (f *fileNameInfoSlice) Sort() {
 	sort.Sort(f)
 }
 
-func (f *FileNameInfoSlice) RemoveBefore(n int) {
-	files := []FileNameInfo{}
+func (f *fileNameInfoSlice) removeBefore(n int) {
+	files := []fileNameInfo{}
 	for i := 0; i < f.Len(); i++ {
 		if i < n {
-			os.Remove(f.files[i].FileName)
+			os.Remove(f.files[i].fileName)
 		} else {
 			files = append(files, f.files[i])
 		}
@@ -51,28 +47,28 @@ func (f *FileNameInfoSlice) RemoveBefore(n int) {
 	f.files = files
 }
 
-func (f *FileNameInfoSlice) RenameIndex(prefix string) {
+func (f *fileNameInfoSlice) renameIndex(prefix string) {
 	for index, fi := range f.files {
 		newname := prefix + "." + strconv.Itoa(index+1)
-		os.Rename(fi.FileName, newname)
+		os.Rename(fi.fileName, newname)
 	}
 }
 
 type SizeRotationHandler struct {
 	*Handler
-	FileName    string
-	CurFileSize uint64
-	MaxFileSize uint64
-	MaxFiles    uint32
+	fileName    string
+	curFileSize uint64
+	maxFileSize uint64
+	maxFiles    uint32
 }
 
 func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotationHandler, error) {
-	h := &SizeRotationHandler{FileName: fn, MaxFileSize: size, MaxFiles: count}
-	fp, err := h.OpenCreateFile(fn)
+	h := &SizeRotationHandler{fileName: fn, maxFileSize: size, maxFiles: count}
+	fp, err := h.openCreateFile(fn)
 	if err != nil {
 		return nil, err
 	}
-	h.CurFileSize, err = h.FileSize()
+	h.curFileSize, err = h.fileSize()
 	if err != nil {
 		fp.Close()
 		return nil, err
@@ -82,25 +78,25 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 		return nil, err
 	}
 	h.Handler = bh
-	h.Before = h.Rotate
-	h.After = h.AfterWrite
+	h.Before = h.rotate
+	h.After = h.afterWrite
 	return h, nil
 }
 
-func (h *SizeRotationHandler) OpenCreateFile(fn string) (*os.File, error) {
+func (h *SizeRotationHandler) openCreateFile(fn string) (*os.File, error) {
 	return os.OpenFile(fn, FileCreateFlag, FileCreatePerm)
 }
 
-func (h *SizeRotationHandler) FileSize() (uint64, error) {
-	info, err := os.Stat(h.FileName)
+func (h *SizeRotationHandler) fileSize() (uint64, error) {
+	info, err := os.Stat(h.fileName)
 	if err != nil {
 		return 0, err
 	}
 	return uint64(info.Size()), nil
 }
 
-func (h *SizeRotationHandler) ReleaseFiles() (string, error) {
-	pattern := h.FileName + ".*"
+func (h *SizeRotationHandler) releaseFiles() (string, error) {
+	pattern := h.fileName + ".*"
 	fs, err := filepath.Glob(pattern)
 	if err != nil {
 		return "", err
@@ -109,40 +105,40 @@ func (h *SizeRotationHandler) ReleaseFiles() (string, error) {
 	if err2 != nil {
 		return "", err2
 	}
-	files := &FileNameInfoSlice{}
+	files := &fileNameInfoSlice{}
 	for _, name := range fs {
-		suf := strings.TrimPrefix(name+".", h.FileName)
+		suf := strings.TrimPrefix(name+".", h.fileName)
 		if re.MatchString(suf) {
 			if fileinfo, err := os.Stat(name); err == nil {
-				files.Append(FileNameInfo{name, fileinfo})
+				files.files = append(files.files, fileNameInfo{name, fileinfo})
 			}
 		}
 	}
 	files.Sort()
-	files.RemoveBefore(files.Len() - int(h.MaxFiles))
-	files.RenameIndex(h.FileName)
-	release := h.FileName + "." + strconv.Itoa(files.Len()+1)
+	files.removeBefore(files.Len() - int(h.maxFiles))
+	files.renameIndex(h.fileName)
+	release := h.fileName + "." + strconv.Itoa(files.Len()+1)
 	return release, nil
 }
 
-func (h *SizeRotationHandler) AfterWrite(rd *Record, n int64) {
-	h.CurFileSize += uint64(n)
+func (h *SizeRotationHandler) afterWrite(rd *Record, n int64) {
+	h.curFileSize += uint64(n)
 }
 
-func (h *SizeRotationHandler) Rotate(*Record, io.ReadWriter) {
-	if h.CurFileSize < h.MaxFileSize {
+func (h *SizeRotationHandler) rotate(*Record, io.ReadWriter) {
+	if h.curFileSize < h.maxFileSize {
 		return
 	}
-	h.CurFileSize = 0
+	h.curFileSize = 0
 	h.writer.(io.Closer).Close()
-	name, err := h.ReleaseFiles()
+	name, err := h.releaseFiles()
 	if err != nil {
 		return
 	}
-	if err := os.Rename(h.FileName, name); err != nil {
+	if err := os.Rename(h.fileName, name); err != nil {
 		return
 	}
-	fp, err := h.OpenCreateFile(h.FileName)
+	fp, err := h.openCreateFile(h.fileName)
 	if err != nil {
 		return
 	}

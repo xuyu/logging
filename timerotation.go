@@ -15,7 +15,7 @@ type TimeRotationHandler struct {
 func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandler, error) {
 	h := &TimeRotationHandler{}
 	fullfile := strings.Join([]string{shortfile, time.Now().Format(suffix)}, ".")
-	file, err := h.OpenFile(fullfile, shortfile)
+	file, err := h.openFile(fullfile, shortfile)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 		return nil, err
 	}
 	h.Handler = bh
-	h.Before = h.Rotate
+	h.Before = h.rotate
 	h.LocalData = make(map[string]string)
 	h.LocalData["oldfilepath"] = fullfile
 	h.LocalData["linkpath"] = shortfile
@@ -32,7 +32,7 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 	return h, nil
 }
 
-func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, error) {
+func (h *TimeRotationHandler) openFile(filepath, linkpath string) (*os.File, error) {
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
 			if _, err := os.Create(filepath); err != nil {
@@ -56,11 +56,11 @@ func (h *TimeRotationHandler) OpenFile(filepath, linkpath string) (*os.File, err
 	return file, nil
 }
 
-func (h *TimeRotationHandler) Rotate(*Record, io.ReadWriter) {
+func (h *TimeRotationHandler) rotate(*Record, io.ReadWriter) {
 	filepath := h.LocalData["linkpath"] + "." + time.Now().Format(h.LocalData["suffix"])
 	if filepath != h.LocalData["oldfilepath"] {
 		h.writer.(io.Closer).Close()
-		file, err := h.OpenFile(filepath, h.LocalData["linkpath"])
+		file, err := h.openFile(filepath, h.LocalData["linkpath"])
 		if err != nil {
 			return
 		}
