@@ -86,13 +86,10 @@ func (h *Handler) Emit(rd Record) {
 	} else if h.level > rd.Level {
 		return
 	}
-	h.mutex.Lock()
-	h.buffer.Reset()
-	h.handleRecord(&rd, h.buffer)
-	h.mutex.Unlock()
+	h.handleRecord(&rd)
 }
 
-func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
+func (h *Handler) handleRecord(rd *Record) {
 	if h.writer == nil {
 		return
 	}
@@ -100,16 +97,21 @@ func (h *Handler) handleRecord(rd *Record, buf *bytes.Buffer) {
 		return
 	}
 	rd.TimeString = rd.Time.Format(h.timeLayout)
-	if err := h.tmpl.Execute(buf, rd); err != nil {
+	h.mutex.Lock()
+	h.buffer.Reset()
+	if err := h.tmpl.Execute(h.buffer, rd); err != nil {
+		h.mutex.Unlock()
 		return
 	}
 	if h.Before != nil {
-		h.Before(rd, buf)
+		h.Before(rd, h.buffer)
 	}
-	n, err := io.Copy(h.writer, buf)
+	n, err := io.Copy(h.writer, h.buffer)
 	if err != nil {
+		h.mutex.Unlock()
 		return
 	}
+	h.mutex.Unlock()
 	if h.After != nil {
 		h.After(rd, int64(n))
 	}
