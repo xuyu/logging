@@ -46,6 +46,22 @@ func (l *Logger) Log(level logLevel, format string, values ...interface{}) {
 	}
 }
 
+func (l *Logger) Debug(format string, values ...interface{}) {
+	l.Log(DEBUG, format, values...)
+}
+
+func (l *Logger) Info(format string, values ...interface{}) {
+	l.Log(INFO, format, values...)
+}
+
+func (l *Logger) Warning(format string, values ...interface{}) {
+	l.Log(WARNING, format, values...)
+}
+
+func (l *Logger) Error(format string, values ...interface{}) {
+	l.Log(ERROR, format, values...)
+}
+
 func AddHandler(name string, h Emitter) {
 	DefaultLogger.AddHandler(name, h)
 }
