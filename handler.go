@@ -45,6 +45,18 @@ func NewHandler(out io.Writer, level logLevel, layout, format string) (*Handler,
 	return h, nil
 }
 
+func (h *Handler) Close() error {
+	var err error
+	h.mutex.Lock()
+	closer, ok := h.writer.(io.Closer)
+	if ok {
+		err = closer.Close()
+	}
+	h.writer = nil
+	h.mutex.Unlock()
+	return err
+}
+
 func (h *Handler) SetLevel(level logLevel) {
 	h.level = level
 }
@@ -90,14 +102,14 @@ func (h *Handler) Emit(rd Record) {
 }
 
 func (h *Handler) handleRecord(rd *Record) {
-	if h.writer == nil {
-		return
-	}
 	if h.filter != nil && h.filter(rd) {
 		return
 	}
 	rd.TimeString = rd.Time.Format(h.timeLayout)
 	h.mutex.Lock()
+	if h.writer == nil {
+		return
+	}
 	h.buffer.Reset()
 	if err := h.tmpl.Execute(h.buffer, rd); err != nil {
 		h.mutex.Unlock()

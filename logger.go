@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"io"
 	"time"
 )
 
@@ -30,6 +31,13 @@ func NewLogger() *Logger {
 var DefaultLogger = NewLogger()
 
 func (l *Logger) AddHandler(name string, h Emitter) {
+	oldHandler, ok := l.Handlers[name]
+	if ok {
+		closer, ok := oldHandler.(io.Closer)
+		if ok {
+			closer.Close()
+		}
+	}
 	l.Handlers[name] = h
 }
 
