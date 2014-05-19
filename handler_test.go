@@ -2,8 +2,10 @@ package logging
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 var h *Handler
@@ -11,13 +13,9 @@ var b *bytes.Buffer
 
 func init() {
 	b = bytes.NewBuffer(nil)
-	var err error
-	h, err = NewHandler(b, DEBUG, DefaultTimeLayout, DefaultFormat)
-	if err != nil {
-		panic(err)
-	}
+	h = NewHandler(b)
 	DisableStdout()
-	AddHandler("b", h)
+	AddHandler("", h)
 }
 
 func TestSetLevel(t *testing.T) {
@@ -52,7 +50,7 @@ func TestSetLevelRange(t *testing.T) {
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
 	Error("%d, %s", 1, "OK")
-	if b.Len() != 34*4-2 {
+	if b.Len() != 34*4 {
 		t.Fail()
 	}
 	h.lRange = nil
@@ -68,7 +66,7 @@ func TestSetLevelRangeString(t *testing.T) {
 	Debug("%d, %s", 1, "OK")
 	Info("%d, %s", 1, "OK")
 	Error("%d, %s", 1, "OK")
-	if b.Len() != 34*4-2 {
+	if b.Len() != 34*4 {
 		t.Fail()
 	}
 	h.lRange = nil
@@ -98,24 +96,29 @@ func TestSetFilter(t *testing.T) {
 	h.SetFilter(nil)
 }
 
-func TestAsyncHandler(t *testing.T) {
-	b.Reset()
-	h.SetLevel(DEBUG)
-	Error("%d, %s", 1, "OK")
-	if b.Len() != 34 {
-		t.Fail()
-	}
-}
-
 func TestLoggerHandlerName(t *testing.T) {
 	b.Reset()
 	DefaultLogger.Name = "DefaultLogger"
-	if err := h.SetFormat("[{{.TimeString}}] {{printf \"%s.%s\" .LoggerName .HandlerName | printf \"%-20s\"}} {{.Level}} {{.Message}}\n"); err != nil {
-		t.Error(err.Error())
-	}
+	h.SetFormat(func(name, timeString string, rd *Record) string {
+		return "[" + timeString + "] " + rd.LoggerName + "." + name + " " + rd.Level.String() + " " + rd.Message + "\n"
+	})
 	Error("%d, %s", 1, "OK")
-	if b.Len() != 55 {
+	if b.Len() != 49 {
 		t.Fail()
 	}
 	h.SetFormat(DefaultFormat)
+}
+
+func BenchmarkEmit(bench *testing.B) {
+	h.SetLevel(DEBUG)
+	for i := 0; i < bench.N; i++ {
+		b.Reset()
+		rd := &Record{
+			Time:       time.Now(),
+			Level:      INFO,
+			Message:    fmt.Sprintf("%s, %s", "Hello", "world!"),
+			LoggerName: "R",
+		}
+		h.Emit("SS", rd)
+	}
 }

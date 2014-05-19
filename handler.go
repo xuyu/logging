@@ -5,12 +5,10 @@ import (
 	"io"
 	"os"
 	"sync"
-	"text/template"
 )
 
 const (
 	DefaultTimeLayout = "2006-01-02 15:04:05"
-	DefaultFormat     = "[{{.TimeString}}] {{.Level}} {{.Message}}\n"
 )
 
 var (
@@ -18,31 +16,34 @@ var (
 	FileCreatePerm os.FileMode = 0640
 )
 
-type Handler struct {
-	mutex      sync.Mutex
-	buffer     *bytes.Buffer
-	writer     io.Writer
-	level      logLevel
-	lRange     *levelRange
-	timeLayout string
-	tmpl       *template.Template
-	filter     func(*Record) bool
-
-	Before func(*Record, io.ReadWriter)
-	After  func(*Record, int64)
+var DefaultFormat = func(name, timeString string, rd *Record) string {
+	if name == "" {
+		return "[" + timeString + "] " + rd.Level.String() + " " + rd.Message + "\n"
+	}
+	return "[" + timeString + "] " + name + " " + rd.Level.String() + " " + rd.Message + "\n"
 }
 
-func NewHandler(out io.Writer, level logLevel, layout, format string) (*Handler, error) {
-	h := &Handler{
-		buffer:     bytes.NewBuffer(nil),
-		writer:     out,
-		level:      level,
-		timeLayout: layout,
+type Handler struct {
+	mutex  sync.Mutex
+	buffer *bytes.Buffer
+	writer io.Writer
+	level  logLevel
+	lRange *levelRange
+	layout string
+	format func(string, string, *Record) string
+	filter func(*Record) bool
+	before func(*Record, io.ReadWriter)
+	after  func(*Record, int64)
+}
+
+func NewHandler(out io.Writer) *Handler {
+	return &Handler{
+		buffer: bytes.NewBuffer(nil),
+		writer: out,
+		level:  DEBUG,
+		layout: DefaultTimeLayout,
+		format: DefaultFormat,
 	}
-	if err := h.SetFormat(format); err != nil {
-		return nil, err
-	}
-	return h, nil
 }
 
 func (h *Handler) Close() error {
@@ -74,23 +75,18 @@ func (h *Handler) SetLevelRangeString(smin, smax string) {
 }
 
 func (h *Handler) SetTimeLayout(layout string) {
-	h.timeLayout = layout
+	h.layout = layout
 }
 
-func (h *Handler) SetFormat(format string) error {
-	tmpl, err := template.New("tmpl").Parse(format)
-	if err != nil {
-		return err
-	}
-	h.tmpl = tmpl
-	return nil
+func (h *Handler) SetFormat(format func(string, string, *Record) string) {
+	h.format = format
 }
 
 func (h *Handler) SetFilter(f func(*Record) bool) {
 	h.filter = f
 }
 
-func (h *Handler) Emit(rd Record) {
+func (h *Handler) Emit(name string, rd *Record) {
 	if h.lRange != nil {
 		if !h.lRange.contains(rd.Level) {
 			return
@@ -98,33 +94,45 @@ func (h *Handler) Emit(rd Record) {
 	} else if h.level > rd.Level {
 		return
 	}
-	h.handleRecord(&rd)
+	h.handleRecord(name, rd)
 }
 
-func (h *Handler) handleRecord(rd *Record) {
+func (h *Handler) handleRecord(name string, rd *Record) {
 	if h.filter != nil && h.filter(rd) {
 		return
 	}
-	rd.TimeString = rd.Time.Format(h.timeLayout)
+	timeString := rd.Time.Format(h.layout)
 	h.mutex.Lock()
 	if h.writer == nil {
-		return
-	}
-	h.buffer.Reset()
-	if err := h.tmpl.Execute(h.buffer, rd); err != nil {
 		h.mutex.Unlock()
 		return
 	}
-	if h.Before != nil {
-		h.Before(rd, h.buffer)
+	if h.before == nil {
+		n, err := io.WriteString(h.writer, h.format(name, timeString, rd))
+		if err != nil {
+			h.mutex.Unlock()
+			return
+		}
+		h.mutex.Unlock()
+		if h.after != nil {
+			h.after(rd, int64(n))
+		}
+		return
 	}
+	h.buffer.Reset()
+	_, err := io.WriteString(h.buffer, h.format(name, timeString, rd))
+	if err != nil {
+		h.mutex.Unlock()
+		return
+	}
+	h.before(rd, h.buffer)
 	n, err := io.Copy(h.writer, h.buffer)
 	if err != nil {
 		h.mutex.Unlock()
 		return
 	}
 	h.mutex.Unlock()
-	if h.After != nil {
-		h.After(rd, int64(n))
+	if h.after != nil {
+		h.after(rd, n)
 	}
 }

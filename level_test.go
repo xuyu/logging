@@ -7,8 +7,8 @@ import (
 func TestLevelToString(t *testing.T) {
 	data := map[logLevel]string{
 		DEBUG:         "DEBUG",
-		INFO:          "INFO",
-		WARNING:       "WARNING",
+		INFO:          "INFO ",
+		WARNING:       "WARN ",
 		ERROR:         "ERROR",
 		logLevel(250): "DISABLE",
 	}
@@ -23,6 +23,7 @@ func TestStringToLevel(t *testing.T) {
 	data := map[string]logLevel{
 		"DEBUG":   DEBUG,
 		"INFO":    INFO,
+		"WARN":    WARNING,
 		"WARNING": WARNING,
 		"ERROR":   ERROR,
 		"":        DISABLE,

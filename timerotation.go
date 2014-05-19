@@ -9,7 +9,7 @@ import (
 
 type TimeRotationHandler struct {
 	*Handler
-	LocalData map[string]string
+	localData map[string]string
 }
 
 func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandler, error) {
@@ -19,16 +19,12 @@ func NewTimeRotationHandler(shortfile string, suffix string) (*TimeRotationHandl
 	if err != nil {
 		return nil, err
 	}
-	bh, err := NewHandler(file, DEBUG, DefaultTimeLayout, DefaultFormat)
-	if err != nil {
-		return nil, err
-	}
-	h.Handler = bh
-	h.Before = h.rotate
-	h.LocalData = make(map[string]string)
-	h.LocalData["oldfilepath"] = fullfile
-	h.LocalData["linkpath"] = shortfile
-	h.LocalData["suffix"] = suffix
+	h.Handler = NewHandler(file)
+	h.before = h.rotate
+	h.localData = make(map[string]string)
+	h.localData["oldfilepath"] = fullfile
+	h.localData["linkpath"] = shortfile
+	h.localData["suffix"] = suffix
 	return h, nil
 }
 
@@ -57,14 +53,14 @@ func (h *TimeRotationHandler) openFile(filepath, linkpath string) (*os.File, err
 }
 
 func (h *TimeRotationHandler) rotate(*Record, io.ReadWriter) {
-	filepath := h.LocalData["linkpath"] + "." + time.Now().Format(h.LocalData["suffix"])
-	if filepath != h.LocalData["oldfilepath"] {
+	filepath := h.localData["linkpath"] + "." + time.Now().Format(h.localData["suffix"])
+	if filepath != h.localData["oldfilepath"] {
 		h.writer.(io.Closer).Close()
-		file, err := h.openFile(filepath, h.LocalData["linkpath"])
+		file, err := h.openFile(filepath, h.localData["linkpath"])
 		if err != nil {
 			return
 		}
 		h.writer = file
-		h.LocalData["oldfilepath"] = filepath
+		h.localData["oldfilepath"] = filepath
 	}
 }

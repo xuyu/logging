@@ -20,7 +20,7 @@ func stringToLogLevel(s string) logLevel {
 		return DEBUG
 	case "INFO":
 		return INFO
-	case "WARNING":
+	case "WARN", "WARNING":
 		return WARNING
 	case "ERROR":
 		return ERROR
@@ -34,9 +34,9 @@ func (level *logLevel) String() string {
 	case DEBUG:
 		return "DEBUG"
 	case INFO:
-		return "INFO"
+		return "INFO "
 	case WARNING:
-		return "WARNING"
+		return "WARN "
 	case ERROR:
 		return "ERROR"
 	default:

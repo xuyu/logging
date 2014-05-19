@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	stdoutHandlerName = "stdout"
+	stdoutHandlerName = "STDOUT"
 )
 
 var (
@@ -14,11 +14,7 @@ var (
 )
 
 func init() {
-	h, err := NewHandler(os.Stdout, DEBUG, DefaultTimeLayout, DefaultFormat)
-	if err != nil {
-		panic(err)
-	}
-	StdoutHandler = h
+	StdoutHandler = NewHandler(os.Stdout)
 	EnableStdout()
 	EnableColorful()
 }
@@ -32,16 +28,16 @@ func EnableStdout() {
 }
 
 func EnableColorful() {
-	StdoutHandler.Before = func(rd *Record, buf io.ReadWriter) {
+	StdoutHandler.before = func(rd *Record, buf io.ReadWriter) {
 		colorful(rd.Level)
 	}
-	StdoutHandler.After = func(*Record, int64) {
+	StdoutHandler.after = func(*Record, int64) {
 		resetColorful()
 	}
 }
 
 func DisableColorful() {
 	resetColorful()
-	StdoutHandler.Before = nil
-	StdoutHandler.After = nil
+	StdoutHandler.before = nil
+	StdoutHandler.after = nil
 }

@@ -13,9 +13,5 @@ func NewSingleFileHandler(file string) (*SingleFileHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	bh, err := NewHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
-	if err != nil {
-		return nil, err
-	}
-	return &SingleFileHandler{bh}, nil
+	return &SingleFileHandler{NewHandler(fp)}, nil
 }

@@ -73,13 +73,9 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 		fp.Close()
 		return nil, err
 	}
-	bh, err := NewHandler(fp, DEBUG, DefaultTimeLayout, DefaultFormat)
-	if err != nil {
-		return nil, err
-	}
-	h.Handler = bh
-	h.Before = h.rotate
-	h.After = h.afterWrite
+	h.Handler = NewHandler(fp)
+	h.before = h.rotate
+	h.after = h.afterWrite
 	return h, nil
 }
 
