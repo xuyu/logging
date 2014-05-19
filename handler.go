@@ -101,38 +101,26 @@ func (h *Handler) handleRecord(name string, rd *Record) {
 	if h.filter != nil && h.filter(rd) {
 		return
 	}
-	timeString := rd.Time.Format(h.layout)
+	s := h.format(name, rd.Time.Format(h.layout), rd)
 	h.mutex.Lock()
 	if h.writer == nil {
 		h.mutex.Unlock()
 		return
 	}
 	if h.before == nil {
-		n, err := io.WriteString(h.writer, h.format(name, timeString, rd))
-		if err != nil {
-			h.mutex.Unlock()
-			return
-		}
-		h.mutex.Unlock()
-		if h.after != nil {
+		n, err := io.WriteString(h.writer, s)
+		if err == nil && h.after != nil {
 			h.after(rd, int64(n))
 		}
+		h.mutex.Unlock()
 		return
 	}
 	h.buffer.Reset()
-	_, err := io.WriteString(h.buffer, h.format(name, timeString, rd))
-	if err != nil {
-		h.mutex.Unlock()
-		return
-	}
+	_, _ = io.WriteString(h.buffer, s)
 	h.before(rd, h.buffer)
 	n, err := io.Copy(h.writer, h.buffer)
-	if err != nil {
-		h.mutex.Unlock()
-		return
-	}
-	h.mutex.Unlock()
-	if h.after != nil {
+	if err == nil && h.after != nil {
 		h.after(rd, n)
 	}
+	h.mutex.Unlock()
 }
