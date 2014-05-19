@@ -33,7 +33,7 @@ func (l *Logger) AddHandler(name string, h Emitter) {
 	if ok {
 		closer, ok := oldHandler.(io.Closer)
 		if ok {
-			closer.Close()
+			_ = closer.Close()
 		}
 	}
 	l.Handlers[name] = h

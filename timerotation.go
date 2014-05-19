@@ -38,7 +38,7 @@ func (h *TimeRotationHandler) openFile(filepath, linkpath string) (*os.File, err
 			return nil, err
 		}
 	}
-	os.Remove(linkpath)
+	_ = os.Remove(linkpath)
 	var fn string
 	if err := os.Symlink(filepath, linkpath); err != nil {
 		fn = filepath
@@ -55,7 +55,7 @@ func (h *TimeRotationHandler) openFile(filepath, linkpath string) (*os.File, err
 func (h *TimeRotationHandler) rotate(*Record, io.ReadWriter) {
 	filepath := h.localData["linkpath"] + "." + time.Now().Format(h.localData["suffix"])
 	if filepath != h.localData["oldfilepath"] {
-		h.writer.(io.Closer).Close()
+		_ = h.writer.(io.Closer).Close()
 		file, err := h.openFile(filepath, h.localData["linkpath"])
 		if err != nil {
 			return

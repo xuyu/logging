@@ -39,7 +39,7 @@ func (f *fileNameInfoSlice) removeBefore(n int) {
 	files := []fileNameInfo{}
 	for i := 0; i < f.Len(); i++ {
 		if i < n {
-			os.Remove(f.files[i].fileName)
+			_ = os.Remove(f.files[i].fileName)
 		} else {
 			files = append(files, f.files[i])
 		}
@@ -50,7 +50,7 @@ func (f *fileNameInfoSlice) removeBefore(n int) {
 func (f *fileNameInfoSlice) renameIndex(prefix string) {
 	for index, fi := range f.files {
 		newname := prefix + "." + strconv.Itoa(index+1)
-		os.Rename(fi.fileName, newname)
+		_ = os.Rename(fi.fileName, newname)
 	}
 }
 
@@ -70,7 +70,7 @@ func NewSizeRotationHandler(fn string, size uint64, count uint32) (*SizeRotation
 	}
 	h.curFileSize, err = h.fileSize()
 	if err != nil {
-		fp.Close()
+		_ = fp.Close()
 		return nil, err
 	}
 	h.Handler = NewHandler(fp)
@@ -126,7 +126,7 @@ func (h *SizeRotationHandler) rotate(*Record, io.ReadWriter) {
 		return
 	}
 	h.curFileSize = 0
-	h.writer.(io.Closer).Close()
+	_ = h.writer.(io.Closer).Close()
 	name, err := h.releaseFiles()
 	if err != nil {
 		return
