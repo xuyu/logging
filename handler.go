@@ -17,10 +17,7 @@ var (
 )
 
 var DefaultFormat = func(name, timeString string, rd *Record) string {
-	if name == "" {
-		return "[" + timeString + "] " + rd.Level.String() + " " + rd.Message + "\n"
-	}
-	return "[" + timeString + "] " + name + " " + rd.Level.String() + " " + rd.Message + "\n"
+	return "[" + timeString + "] " + rd.Level.String() + " " + rd.Message + "\n"
 }
 
 type Handler struct {
