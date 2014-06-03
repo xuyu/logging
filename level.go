@@ -14,7 +14,7 @@ const (
 	DISABLE logLevel = 255
 )
 
-func stringToLogLevel(s string) logLevel {
+func StringToLogLevel(s string) logLevel {
 	switch strings.ToUpper(s) {
 	case "DEBUG":
 		return DEBUG

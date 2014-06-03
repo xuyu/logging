@@ -60,7 +60,7 @@ func (h *Handler) SetLevel(level logLevel) {
 }
 
 func (h *Handler) SetLevelString(s string) {
-	h.SetLevel(stringToLogLevel(s))
+	h.SetLevel(StringToLogLevel(s))
 }
 
 func (h *Handler) SetLevelRange(minLevel, maxLevel logLevel) {
@@ -68,7 +68,7 @@ func (h *Handler) SetLevelRange(minLevel, maxLevel logLevel) {
 }
 
 func (h *Handler) SetLevelRangeString(smin, smax string) {
-	h.SetLevelRange(stringToLogLevel(smin), stringToLogLevel(smax))
+	h.SetLevelRange(StringToLogLevel(smin), StringToLogLevel(smax))
 }
 
 func (h *Handler) SetTimeLayout(layout string) {
