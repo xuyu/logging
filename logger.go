@@ -67,6 +67,14 @@ func (l *Logger) Error(format string, values ...interface{}) {
 	l.Log(ERROR, format, values...)
 }
 
+func (l *Logger) ResetLogLevel(level string) {
+	for _, e := range l.Handlers {
+		if h, ok := e.(*Handler); ok {
+			h.SetLevelString(level)
+		}
+	}
+}
+
 func AddHandler(name string, h Emitter) {
 	DefaultLogger.AddHandler(name, h)
 }
@@ -89,4 +97,8 @@ func Warning(format string, values ...interface{}) {
 
 func Error(format string, values ...interface{}) {
 	DefaultLogger.Log(ERROR, format, values...)
+}
+
+func ResetLogLevel(level string) {
+	DefaultLogger.ResetLogLevel(level)
 }
